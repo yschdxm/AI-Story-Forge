@@ -56,12 +56,10 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    border-radius: 50%;
-    transition: all var(--transition-normal);
+    transition: color var(--transition-normal);
 }
 
 .close-btn:hover {
-    background: rgba(245, 101, 101, 0.3);
     color: #f56565;
 }
 

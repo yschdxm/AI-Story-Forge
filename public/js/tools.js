@@ -649,8 +649,6 @@ async function loadHistory() {
 
 // 查看历史记录详情
 async function viewHistory(id) {
-    showLoading();
-
     try {
         const response = await fetch(`/api/history/${id}`, {
             method: 'GET',
@@ -665,8 +663,6 @@ async function viewHistory(id) {
             throw new Error(data.error || '获取历史记录详情失败');
         }
 
-        hideLoading();
-
         const item = data.history;
         const toolName = getToolName(item.toolType);
         const date = new Date(item.createdAt).toLocaleString('zh-CN');
@@ -678,7 +674,7 @@ async function viewHistory(id) {
 <div class="modal-content">
     <div class="modal-header">
         <h3>${toolName} - 历史记录详情</h3>
-        <button onclick="this.closest('.modal-overlay').remove()" class="modal-close">✕</button>
+        <button onclick="this.closest('.modal-overlay').remove()" class="close-btn">✕</button>
     </div>
     <div class="modal-body">
         <div class="history-detail-info">
@@ -697,15 +693,11 @@ async function viewHistory(id) {
             <pre>${JSON.stringify(item.inputParams, null, 2)}</pre>
         </div>
     </div>
-    <div class="modal-footer">
-        <button onclick="this.closest('.modal-overlay').remove()" class="generate-btn">关闭</button>
-    </div>
 </div>
         `;
         document.body.appendChild(modal);
 
     } catch (error) {
-        hideLoading();
         showNotification('获取历史记录详情失败: ' + error.message, 'error');
     }
 }
