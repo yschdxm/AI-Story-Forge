@@ -45,6 +45,8 @@
     border-radius: var(--radius-xl);
     border: 1px solid var(--glass-border);
     margin-bottom: var(--spacing-xl);
+    position: relative;
+    z-index: var(--z-base);
 }
 
 .model-switcher-header {
