@@ -1,0 +1,69 @@
+/* ==================== 响应式设计 ==================== */
+
+/* 移动端通用响应式 */
+@media (max-width: 768px) {
+    /* 头部 */
+    .app-header h1 {
+        font-size: 2em;
+    }
+
+    .tool-tabs {
+        flex-direction: column;
+    }
+
+    .tab-btn {
+        width: 100%;
+    }
+
+    .tool-section {
+        padding: var(--spacing-xl);
+    }
+
+    .container {
+        padding: var(--spacing-lg);
+    }
+
+    /* 表单 */
+    .input-group select {
+        font-size: 0.95em;
+        padding: var(--spacing-md) var(--spacing-lg);
+        padding-right: 35px;
+    }
+
+    .custom-select-trigger {
+        font-size: 0.95em;
+        padding: var(--spacing-md) var(--spacing-lg);
+    }
+
+    .custom-select-options {
+        max-height: 220px;
+    }
+
+    .custom-select-option {
+        padding: var(--spacing-md) var(--spacing-lg);
+    }
+
+    /* 用户系统 */
+    .user-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: var(--spacing-md);
+    }
+
+    .user-actions {
+        width: 100%;
+        justify-content: flex-end;
+    }
+
+    /* 设置项 */
+    .setting-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: var(--spacing-lg);
+    }
+
+    .setting-control {
+        width: 100%;
+        justify-content: space-between;
+    }
+}

@@ -1,0 +1,145 @@
+/* ==================== 基础样式 ==================== */
+
+body {
+    font-family: var(--font-serif);
+    background: linear-gradient(135deg, #0f0617 0%, #1a0f2e 50%, #2d1b4e 100%);
+    color: var(--text-light);
+    min-height: 100vh;
+    overflow-x: hidden;
+}
+
+/* 粒子背景容器 */
+#particles-js {
+    position: fixed;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+    z-index: 0;
+    opacity: 0.6;
+}
+
+/* 主容器 */
+.container {
+    position: relative;
+    z-index: var(--z-base);
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: var(--spacing-xl);
+    min-height: 100vh;
+}
+
+/* 头部 */
+.app-header {
+    text-align: center;
+    margin-bottom: var(--spacing-2xl);
+    padding: var(--spacing-2xl);
+    background: var(--glass-bg);
+    backdrop-filter: blur(20px);
+    border-radius: var(--radius-2xl);
+    border: 1px solid var(--glass-border);
+    box-shadow: 0 8px 32px rgba(107, 70, 193, 0.2);
+}
+
+.app-header h1 {
+    font-family: var(--font-display);
+    font-size: 3.5em;
+    background: linear-gradient(45deg, var(--gold), var(--accent-pink), var(--accent-blue));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: var(--spacing-md);
+    text-shadow: 0 0 30px rgba(251, 191, 36, 0.3);
+}
+
+.subtitle {
+    font-size: 1.2em;
+    opacity: 0.8;
+    letter-spacing: 2px;
+}
+
+/* 工具标签页 */
+.tool-tabs {
+    display: flex;
+    gap: var(--spacing-md);
+    margin-bottom: var(--spacing-xl);
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.tab-btn {
+    padding: var(--spacing-md) var(--spacing-xl);
+    background: var(--glass-bg);
+    border: 2px solid var(--glass-border);
+    border-radius: var(--radius-xl);
+    color: var(--text-light);
+    cursor: pointer;
+    font-size: 1em;
+    font-family: var(--font-serif);
+    transition: all var(--transition-normal);
+    backdrop-filter: blur(10px);
+}
+
+.tab-btn:hover {
+    transform: translateY(-2px);
+    border-color: var(--accent-blue);
+    box-shadow: var(--shadow-sm);
+}
+
+.tab-btn.active {
+    background: linear-gradient(135deg, var(--primary-purple), var(--accent-pink));
+    border-color: var(--gold);
+    box-shadow: 0 4px 20px rgba(246, 135, 179, 0.4);
+}
+
+/* 工具内容区域 */
+.tool-section {
+    display: none;
+    background: var(--glass-bg);
+    backdrop-filter: blur(20px);
+    border-radius: var(--radius-2xl);
+    padding: var(--spacing-2xl);
+    border: 1px solid var(--glass-border);
+    box-shadow: var(--shadow-md);
+    animation: fadeIn var(--transition-slow);
+}
+
+.tool-section.active {
+    display: block;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.tool-section h2 {
+    font-family: var(--font-display);
+    margin-bottom: var(--spacing-2xl);
+    color: var(--gold);
+    font-size: 2em;
+    text-align: center;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+    .app-header h1 {
+        font-size: 2em;
+    }
+
+    .tool-tabs {
+        flex-direction: column;
+    }
+
+    .tab-btn {
+        width: 100%;
+    }
+
+    .tool-section {
+        padding: var(--spacing-xl);
+    }
+
+    .container {
+        padding: var(--spacing-lg);
+    }
+}

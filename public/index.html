@@ -1,0 +1,636 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Story Forge | AI创意故事工坊</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Noto+Serif+SC:wght@300;400;600&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- 粒子背景 -->
+    <div id="particles-js"></div>
+
+    <!-- 主容器 -->
+    <div class="container">
+        <!-- 头部 -->
+        <header class="app-header">
+            <div class="header-content">
+                <div>
+                    <h1>✨ AI Story Forge</h1>
+                    <p class="subtitle">创意故事工坊 - 与AI共同创作</p>
+                </div>
+                <div class="user-controls">
+                    <div id="user-status" class="user-status">
+                        <span class="loading-text">加载中...</span>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- 工具栏 -->
+        <nav class="tool-tabs">
+            <button class="tab-btn active" data-tool="character">🎭 角色生成器</button>
+            <button class="tab-btn" data-tool="plot">📖 情节编织器</button>
+            <button class="tab-btn" data-tool="visual">🎨 场景可视化</button>
+            <button class="tab-btn" data-tool="style">🎭 风格转换器</button>
+            <button class="tab-btn" data-tool="cowrite">✍️ 互动写作板</button>
+            <button class="tab-btn" data-tool="world">🌍 世界构建器</button>
+            <button class="tab-btn" data-tool="puzzle">🧩 谜题设计器</button>
+            <button class="tab-btn" data-tool="names">🌟 名字生成器</button>
+        </nav>
+
+        <!-- 模型切换 -->
+        <div class="model-switcher">
+            <div class="model-switcher-header">
+                <span>🤖 AI模型切换</span>
+                <span id="current-model" class="current-model">加载中...</span>
+            </div>
+            <div class="model-switcher-body">
+                <div class="input-group">
+                    <label>选择模型：</label>
+                    <div id="model-select-container"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 工具内容区域 -->
+        <main class="tool-content">
+
+            <!-- 角色生成器 -->
+            <section id="character-tool" class="tool-section active">
+                <h2>🎭 角色设定大师</h2>
+                <div class="input-group">
+                    <label>角色原型：</label>
+                    <input type="text" id="char-archetype" placeholder="例如：神秘的侦探、勇敢的探险家、天才发明家">
+                </div>
+                <div class="input-group">
+                    <label>背景设定：</label>
+                    <input type="text" id="char-setting" placeholder="例如：赛博朋克都市、维多利亚时代、末日废土">
+                </div>
+                <div class="input-group">
+                    <label>关键特质：</label>
+                    <input type="text" id="char-traits" placeholder="例如：聪明、幽默、孤独、执着">
+                </div>
+                <button onclick="generateCharacter()" class="generate-btn">生成角色</button>
+                <div id="character-result" class="result-area"></div>
+            </section>
+
+            <!-- 情节编织器 -->
+            <section id="plot-tool" class="tool-section">
+                <h2>📖 情节编织大师</h2>
+                <div class="input-group">
+                    <label>故事关键词（用逗号分隔）：</label>
+                    <input type="text" id="plot-keywords" placeholder="例如：时间旅行, 谋杀, 爱情">
+                </div>
+                <div class="input-group">
+                    <label>故事类型：</label>
+                    <div class="custom-select" data-select="plot-genre">
+                        <div class="custom-select-trigger">
+                            <span class="custom-select-value">悬疑惊悚</span>
+                            <svg class="custom-select-arrow" viewBox="0 0 24 24" fill="none" stroke="#f687b3" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                <polyline points="6 9 12 15 18 9"></polyline>
+                            </svg>
+                        </div>
+                        <div class="custom-select-options">
+                            <div class="custom-select-option selected" data-value="悬疑惊悚">悬疑惊悚</div>
+                            <div class="custom-select-option" data-value="科幻冒险">科幻冒险</div>
+                            <div class="custom-select-option" data-value="奇幻史诗">奇幻史诗</div>
+                            <div class="custom-select-option" data-value="浪漫喜剧">浪漫喜剧</div>
+                            <div class="custom-select-option" data-value="黑暗奇幻">黑暗奇幻</div>
+                            <div class="custom-select-option" data-value="历史传奇">历史传奇</div>
+                            <div class="custom-select-option" data-value="都市言情">都市言情</div>
+                            <div class="custom-select-option" data-value="武侠江湖">武侠江湖</div>
+                            <div class="custom-select-option" data-value="推理侦探">推理侦探</div>
+                            <div class="custom-select-option" data-value="恐怖灵异">恐怖灵异</div>
+                            <div class="custom-select-option" data-value="成长励志">成长励志</div>
+                            <div class="custom-select-option" data-value="职场商战">职场商战</div>
+                        </div>
+                        <select id="plot-genre" style="display: none;">
+                            <option>悬疑惊悚</option>
+                            <option>科幻冒险</option>
+                            <option>奇幻史诗</option>
+                            <option>浪漫喜剧</option>
+                            <option>黑暗奇幻</option>
+                            <option>历史传奇</option>
+                            <option>都市言情</option>
+                            <option>武侠江湖</option>
+                            <option>推理侦探</option>
+                            <option>恐怖灵异</option>
+                            <option>成长励志</option>
+                            <option>职场商战</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="input-group">
+                    <label>复杂度：</label>
+                    <div class="custom-select" data-select="plot-complexity">
+                        <div class="custom-select-trigger">
+                            <span class="custom-select-value">简单</span>
+                            <svg class="custom-select-arrow" viewBox="0 0 24 24" fill="none" stroke="#f687b3" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                <polyline points="6 9 12 15 18 9"></polyline>
+                            </svg>
+                        </div>
+                        <div class="custom-select-options">
+                            <div class="custom-select-option selected" data-value="简单">简单</div>
+                            <div class="custom-select-option" data-value="中等">中等</div>
+                            <div class="custom-select-option" data-value="复杂">复杂</div>
+                        </div>
+                        <select id="plot-complexity" style="display: none;">
+                            <option>简单</option>
+                            <option>中等</option>
+                            <option>复杂</option>
+                        </select>
+                    </div>
+                </div>
+                <button onclick="weavePlot()" class="generate-btn">编织情节</button>
+                <div id="plot-result" class="result-area"></div>
+            </section>
+
+            <!-- 场景可视化 -->
+            <section id="visual-tool" class="tool-section">
+                <h2>🎨 场景可视化</h2>
+                <div class="input-group">
+                    <label>场景描述：</label>
+                    <textarea id="visual-scene" placeholder="描述你想要的场景，越详细越好..."></textarea>
+                </div>
+                <div class="input-group">
+                    <label>艺术风格：</label>
+                    <div class="custom-select" data-select="visual-style">
+                        <div class="custom-select-trigger">
+                            <span class="custom-select-value">电影感写实</span>
+                            <svg class="custom-select-arrow" viewBox="0 0 24 24" fill="none" stroke="#f687b3" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                <polyline points="6 9 12 15 18 9"></polyline>
+                            </svg>
+                        </div>
+                        <div class="custom-select-options">
+                            <div class="custom-select-option selected" data-value="电影感写实">电影感写实</div>
+                            <div class="custom-select-option" data-value="赛博朋克">赛博朋克</div>
+                            <div class="custom-select-option" data-value="印象派">印象派</div>
+                            <div class="custom-select-option" data-value="哥特式">哥特式</div>
+                            <div class="custom-select-option" data-value="日式动漫">日式动漫</div>
+                            <div class="custom-select-option" data-value="蒸汽朋克">蒸汽朋克</div>
+                            <div class="custom-select-option" data-value="水墨画风">水墨画风</div>
+                            <div class="custom-select-option" data-value="梵高风格">梵高风格</div>
+                            <div class="custom-select-option" data-value="立体主义">立体主义</div>
+                            <div class="custom-select-option" data-value="超现实主义">超现实主义</div>
+                            <div class="custom-select-option" data-value="波普艺术">波普艺术</div>
+                            <div class="custom-select-option" data-value="浮世绘">浮世绘</div>
+                            <div class="custom-select-option" data-value="概念艺术">概念艺术</div>
+                            <div class="custom-select-option" data-value="低多边形">低多边形</div>
+                            <div class="custom-select-option" data-value="像素艺术">像素艺术</div>
+                            <div class="custom-select-option" data-value="霓虹光影">霓虹光影</div>
+                        </div>
+                        <select id="visual-style" style="display: none;">
+                            <option>电影感写实</option>
+                            <option>赛博朋克</option>
+                            <option>印象派</option>
+                            <option>哥特式</option>
+                            <option>日式动漫</option>
+                            <option>蒸汽朋克</option>
+                            <option>水墨画风</option>
+                            <option>梵高风格</option>
+                            <option>立体主义</option>
+                            <option>超现实主义</option>
+                            <option>波普艺术</option>
+                            <option>浮世绘</option>
+                            <option>概念艺术</option>
+                            <option>低多边形</option>
+                            <option>像素艺术</option>
+                            <option>霓虹光影</option>
+                        </select>
+                    </div>
+                </div>
+                <button onclick="visualizeScene()" class="generate-btn">生成视觉描述</button>
+                <div id="visual-result" class="result-area"></div>
+            </section>
+
+            <!-- 风格转换器 -->
+            <section id="style-tool" class="tool-section">
+                <h2>🎭 风格转换器</h2>
+                <div class="input-group">
+                    <label>原始文本：</label>
+                    <textarea id="style-text" placeholder="输入你想要转换的文本..."></textarea>
+                </div>
+                <div class="input-group">
+                    <label>目标风格：</label>
+                    <div class="custom-select" data-select="style-target">
+                        <div class="custom-select-trigger">
+                            <span class="custom-select-value">科幻小说</span>
+                            <svg class="custom-select-arrow" viewBox="0 0 24 24" fill="none" stroke="#f687b3" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                <polyline points="6 9 12 15 18 9"></polyline>
+                            </svg>
+                        </div>
+                        <div class="custom-select-options">
+                            <div class="custom-select-option selected" data-value="科幻小说">科幻小说</div>
+                            <div class="custom-select-option" data-value="奇幻史诗">奇幻史诗</div>
+                            <div class="custom-select-option" data-value="硬汉派侦探">硬汉派侦探</div>
+                            <div class="custom-select-option" data-value="浪漫文学">浪漫文学</div>
+                            <div class="custom-select-option" data-value="恐怖悬疑">恐怖悬疑</div>
+                            <div class="custom-select-option" data-value="古典诗词">古典诗词</div>
+                            <div class="custom-select-option" data-value="武侠小说">武侠小说</div>
+                            <div class="custom-select-option" data-value="推理小说">推理小说</div>
+                            <div class="custom-select-option" data-value="历史文学">历史文学</div>
+                            <div class="custom-select-option" data-value="现代散文">现代散文</div>
+                            <div class="custom-select-option" data-value="童话故事">童话故事</div>
+                            <div class="custom-select-option" data-value="寓言故事">寓言故事</div>
+                            <div class="custom-select-option" data-value="新闻报道">新闻报道</div>
+                            <div class="custom-select-option" data-value="学术论文">学术论文</div>
+                            <div class="custom-select-option" data-value="商业文案">商业文案</div>
+                            <div class="custom-select-option" data-value="诗歌韵文">诗歌韵文</div>
+                        </div>
+                        <select id="style-target" style="display: none;">
+                            <option>科幻小说</option>
+                            <option>奇幻史诗</option>
+                            <option>硬汉派侦探</option>
+                            <option>浪漫文学</option>
+                            <option>恐怖悬疑</option>
+                            <option>古典诗词</option>
+                            <option>武侠小说</option>
+                            <option>推理小说</option>
+                            <option>历史文学</option>
+                            <option>现代散文</option>
+                            <option>童话故事</option>
+                            <option>寓言故事</option>
+                            <option>新闻报道</option>
+                            <option>学术论文</option>
+                            <option>商业文案</option>
+                            <option>诗歌韵文</option>
+                        </select>
+                    </div>
+                </div>
+                <button onclick="transformStyle()" class="generate-btn">转换风格</button>
+                <div id="style-result" class="result-area"></div>
+            </section>
+
+            <!-- 互动写作板 -->
+            <section id="cowrite-tool" class="tool-section">
+                <h2>✍️ 互动写作板</h2>
+                <div class="input-group">
+                    <label>故事开头（或已写内容）：</label>
+                    <textarea id="cowrite-story" placeholder="开始你的故事..."></textarea>
+                </div>
+                <div class="input-group">
+                    <label>故事基调：</label>
+                    <div class="custom-select" data-select="cowrite-tone">
+                        <div class="custom-select-trigger">
+                            <span class="custom-select-value">神秘</span>
+                            <svg class="custom-select-arrow" viewBox="0 0 24 24" fill="none" stroke="#f687b3" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                <polyline points="6 9 12 15 18 9"></polyline>
+                            </svg>
+                        </div>
+                        <div class="custom-select-options">
+                            <div class="custom-select-option selected" data-value="神秘">神秘</div>
+                            <div class="custom-select-option" data-value="紧张">紧张</div>
+                            <div class="custom-select-option" data-value="温馨">温馨</div>
+                            <div class="custom-select-option" data-value="幽默">幽默</div>
+                            <div class="custom-select-option" data-value="黑暗">黑暗</div>
+                            <div class="custom-select-option" data-value="史诗">史诗</div>
+                            <div class="custom-select-option" data-value="浪漫">浪漫</div>
+                            <div class="custom-select-option" data-value="悲伤">悲伤</div>
+                            <div class="custom-select-option" data-value="希望">希望</div>
+                            <div class="custom-select-option" data-value="励志">励志</div>
+                            <div class="custom-select-option" data-value="悬疑">悬疑</div>
+                            <div class="custom-select-option" data-value="惊悚">惊悚</div>
+                            <div class="custom-select-option" data-value="讽刺">讽刺</div>
+                            <div class="custom-select-option" data-value="荒诞">荒诞</div>
+                            <div class="custom-select-option" data-value="诗意">诗意</div>
+                            <div class="custom-select-option" data-value="现实">现实</div>
+                        </div>
+                        <select id="cowrite-tone" style="display: none;">
+                            <option>神秘</option>
+                            <option>紧张</option>
+                            <option>温馨</option>
+                            <option>幽默</option>
+                            <option>黑暗</option>
+                            <option>史诗</option>
+                            <option>浪漫</option>
+                            <option>悲伤</option>
+                            <option>希望</option>
+                            <option>励志</option>
+                            <option>悬疑</option>
+                            <option>惊悚</option>
+                            <option>讽刺</option>
+                            <option>荒诞</option>
+                            <option>诗意</option>
+                            <option>现实</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="input-group">
+                    <label>AI角色：</label>
+                    <div class="custom-select" data-select="cowrite-type">
+                        <div class="custom-select-trigger">
+                            <span class="custom-select-value">继续发展情节</span>
+                            <svg class="custom-select-arrow" viewBox="0 0 24 24" fill="none" stroke="#f687b3" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                <polyline points="6 9 12 15 18 9"></polyline>
+                            </svg>
+                        </div>
+                        <div class="custom-select-options">
+                            <div class="custom-select-option selected" data-value="继续发展情节">继续发展情节</div>
+                            <div class="custom-select-option" data-value="添加意外转折">添加意外转折</div>
+                            <div class="custom-select-option" data-value="深化角色对话">深化角色对话</div>
+                            <div class="custom-select-option" data-value="丰富环境描写">丰富环境描写</div>
+                            <div class="custom-select-option" data-value="制造悬念">制造悬念</div>
+                        </div>
+                        <select id="cowrite-type" style="display: none;">
+                            <option>继续发展情节</option>
+                            <option>添加意外转折</option>
+                            <option>深化角色对话</option>
+                            <option>丰富环境描写</option>
+                            <option>制造悬念</option>
+                        </select>
+                    </div>
+                </div>
+                <button onclick="coWrite()" class="generate-btn">AI续写</button>
+                <div id="cowrite-result" class="result-area"></div>
+            </section>
+
+            <!-- 世界构建器 -->
+            <section id="world-tool" class="tool-section">
+                <h2>🌍 世界构建器</h2>
+                <div class="input-group">
+                    <label>时代背景：</label>
+                    <div class="custom-select" data-select="world-era">
+                        <div class="custom-select-trigger">
+                            <span class="custom-select-value">远古神话</span>
+                            <svg class="custom-select-arrow" viewBox="0 0 24 24" fill="none" stroke="#f687b3" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                <polyline points="6 9 12 15 18 9"></polyline>
+                            </svg>
+                        </div>
+                        <div class="custom-select-options">
+                            <div class="custom-select-option selected" data-value="远古神话">远古神话</div>
+                            <div class="custom-select-option" data-value="中世纪奇幻">中世纪奇幻</div>
+                            <div class="custom-select-option" data-value="蒸汽朋克">蒸汽朋克</div>
+                            <div class="custom-select-option" data-value="赛博朋克">赛博朋克</div>
+                            <div class="custom-select-option" data-value="后末日废土">后末日废土</div>
+                            <div class="custom-select-option" data-value="太空时代">太空时代</div>
+                            <div class="custom-select-option" data-value="未来都市">未来都市</div>
+                            <div class="custom-select-option" data-value="异世界">异世界</div>
+                        </div>
+                        <select id="world-era" style="display: none;">
+                            <option>远古神话</option>
+                            <option>中世纪奇幻</option>
+                            <option>蒸汽朋克</option>
+                            <option>赛博朋克</option>
+                            <option>后末日废土</option>
+                            <option>太空时代</option>
+                            <option>未来都市</option>
+                            <option>异世界</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="input-group">
+                    <label>科技水平：</label>
+                    <div class="custom-select" data-select="world-tech">
+                        <div class="custom-select-trigger">
+                            <span class="custom-select-value">原始时代</span>
+                            <svg class="custom-select-arrow" viewBox="0 0 24 24" fill="none" stroke="#f687b3" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                <polyline points="6 9 12 15 18 9"></polyline>
+                            </svg>
+                        </div>
+                        <div class="custom-select-options">
+                            <div class="custom-select-option selected" data-value="原始时代">原始时代</div>
+                            <div class="custom-select-option" data-value="古代文明">古代文明</div>
+                            <div class="custom-select-option" data-value="中世纪">中世纪</div>
+                            <div class="custom-select-option" data-value="工业革命">工业革命</div>
+                            <div class="custom-select-option" data-value="现代科技">现代科技</div>
+                            <div class="custom-select-option" data-value="高科技">高科技</div>
+                            <div class="custom-select-option" data-value="超高科技">超高科技</div>
+                        </div>
+                        <select id="world-tech" style="display: none;">
+                            <option>原始时代</option>
+                            <option>古代文明</option>
+                            <option>中世纪</option>
+                            <option>工业革命</option>
+                            <option>现代科技</option>
+                            <option>高科技</option>
+                            <option>超高科技</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="input-group">
+                    <label>魔法体系：</label>
+                    <div class="custom-select" data-select="world-magic">
+                        <div class="custom-select-trigger">
+                            <span class="custom-select-value">无魔法</span>
+                            <svg class="custom-select-arrow" viewBox="0 0 24 24" fill="none" stroke="#f687b3" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                <polyline points="6 9 12 15 18 9"></polyline>
+                            </svg>
+                        </div>
+                        <div class="custom-select-options">
+                            <div class="custom-select-option selected" data-value="无魔法">无魔法</div>
+                            <div class="custom-select-option" data-value="元素魔法">元素魔法</div>
+                            <div class="custom-select-option" data-value="奥术魔法">奥术魔法</div>
+                            <div class="custom-select-option" data-value="自然魔法">自然魔法</div>
+                            <div class="custom-select-option" data-value="死灵魔法">死灵魔法</div>
+                            <div class="custom-select-option" data-value="科技魔法">科技魔法</div>
+                            <div class="custom-select-option" data-value="混沌魔法">混沌魔法</div>
+                        </div>
+                        <select id="world-magic" style="display: none;">
+                            <option>无魔法</option>
+                            <option>元素魔法</option>
+                            <option>奥术魔法</option>
+                            <option>自然魔法</option>
+                            <option>死灵魔法</option>
+                            <option>科技魔法</option>
+                            <option>混沌魔法</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="input-group">
+                    <label>文化背景：</label>
+                    <input type="text" id="world-culture" placeholder="例如：东方武侠、西方奇幻、蒸汽朋克都市">
+                </div>
+                <button onclick="buildWorld()" class="generate-btn">构建世界</button>
+                <div id="world-result" class="result-area"></div>
+            </section>
+
+            <!-- 谜题设计器 -->
+            <section id="puzzle-tool" class="tool-section">
+                <h2>🧩 谜题设计器</h2>
+                <div class="input-group">
+                    <label>谜题类型：</label>
+                    <div class="custom-select" data-select="puzzle-type">
+                        <div class="custom-select-trigger">
+                            <span class="custom-select-value">逻辑推理</span>
+                            <svg class="custom-select-arrow" viewBox="0 0 24 24" fill="none" stroke="#f687b3" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                <polyline points="6 9 12 15 18 9"></polyline>
+                            </svg>
+                        </div>
+                        <div class="custom-select-options">
+                            <div class="custom-select-option selected" data-value="逻辑推理">逻辑推理</div>
+                            <div class="custom-select-option" data-value="文字谜题">文字谜题</div>
+                            <div class="custom-select-option" data-value="密码破译">密码破译</div>
+                            <div class="custom-select-option" data-value="机关解密">机关解密</div>
+                            <div class="custom-select-option" data-value="谜语">谜语</div>
+                            <div class="custom-select-option" data-value="推理案件">推理案件</div>
+                            <div class="custom-select-option" data-value="数学谜题">数学谜题</div>
+                            <div class="custom-select-option" data-value="视觉谜题">视觉谜题</div>
+                        </div>
+                        <select id="puzzle-type" style="display: none;">
+                            <option>逻辑推理</option>
+                            <option>文字谜题</option>
+                            <option>密码破译</option>
+                            <option>机关解密</option>
+                            <option>谜语</option>
+                            <option>推理案件</option>
+                            <option>数学谜题</option>
+                            <option>视觉谜题</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="input-group">
+                    <label>难度：</label>
+                    <div class="custom-select" data-select="puzzle-difficulty">
+                        <div class="custom-select-trigger">
+                            <span class="custom-select-value">简单</span>
+                            <svg class="custom-select-arrow" viewBox="0 0 24 24" fill="none" stroke="#f687b3" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                <polyline points="6 9 12 15 18 9"></polyline>
+                            </svg>
+                        </div>
+                        <div class="custom-select-options">
+                            <div class="custom-select-option selected" data-value="简单">简单</div>
+                            <div class="custom-select-option" data-value="中等">中等</div>
+                            <div class="custom-select-option" data-value="困难">困难</div>
+                            <div class="custom-select-option" data-value="地狱">地狱</div>
+                        </div>
+                        <select id="puzzle-difficulty" style="display: none;">
+                            <option>简单</option>
+                            <option>中等</option>
+                            <option>困难</option>
+                            <option>地狱</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="input-group">
+                    <label>主题：</label>
+                    <input type="text" id="puzzle-theme" placeholder="例如：时间、爱情、背叛、救赎">
+                </div>
+                <div class="input-group">
+                    <label>背景设定：</label>
+                    <input type="text" id="puzzle-setting" placeholder="例如：古代遗迹、未来都市、魔法塔">
+                </div>
+                <button onclick="designPuzzle()" class="generate-btn">设计谜题</button>
+                <div id="puzzle-result" class="result-area"></div>
+            </section>
+
+            <!-- 名字生成器 -->
+            <section id="names-tool" class="tool-section">
+                <h2>🌟 名字生成器</h2>
+                <div class="input-group">
+                    <label>文化背景：</label>
+                    <div class="custom-select" data-select="names-culture">
+                        <div class="custom-select-trigger">
+                            <span class="custom-select-value">东方古典</span>
+                            <svg class="custom-select-arrow" viewBox="0 0 24 24" fill="none" stroke="#f687b3" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                <polyline points="6 9 12 15 18 9"></polyline>
+                            </svg>
+                        </div>
+                        <div class="custom-select-options">
+                            <div class="custom-select-option selected" data-value="东方古典">东方古典</div>
+                            <div class="custom-select-option" data-value="西方奇幻">西方奇幻</div>
+                            <div class="custom-select-option" data-value="北欧神话">北欧神话</div>
+                            <div class="custom-select-option" data-value="阿拉伯风情">阿拉伯风情</div>
+                            <div class="custom-select-option" data-value="赛博朋克">赛博朋克</div>
+                            <div class="custom-select-option" data-value="蒸汽朋克">蒸汽朋克</div>
+                            <div class="custom-select-option" data-value="未来科幻">未来科幻</div>
+                            <div class="custom-select-option" data-value="异世界">异世界</div>
+                        </div>
+                        <select id="names-culture" style="display: none;">
+                            <option>东方古典</option>
+                            <option>西方奇幻</option>
+                            <option>北欧神话</option>
+                            <option>阿拉伯风情</option>
+                            <option>赛博朋克</option>
+                            <option>蒸汽朋克</option>
+                            <option>未来科幻</option>
+                            <option>异世界</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="input-group">
+                    <label>性别：</label>
+                    <div class="custom-select" data-select="names-gender">
+                        <div class="custom-select-trigger">
+                            <span class="custom-select-value">男性</span>
+                            <svg class="custom-select-arrow" viewBox="0 0 24 24" fill="none" stroke="#f687b3" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                <polyline points="6 9 12 15 18 9"></polyline>
+                            </svg>
+                        </div>
+                        <div class="custom-select-options">
+                            <div class="custom-select-option selected" data-value="男性">男性</div>
+                            <div class="custom-select-option" data-value="女性">女性</div>
+                            <div class="custom-select-option" data-value="中性">中性</div>
+                            <div class="custom-select-option" data-value="无性别">无性别</div>
+                        </div>
+                        <select id="names-gender" style="display: none;">
+                            <option>男性</option>
+                            <option>女性</option>
+                            <option>中性</option>
+                            <option>无性别</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="input-group">
+                    <label>时代：</label>
+                    <div class="custom-select" data-select="names-era">
+                        <div class="custom-select-trigger">
+                            <span class="custom-select-value">古代</span>
+                            <svg class="custom-select-arrow" viewBox="0 0 24 24" fill="none" stroke="#f687b3" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                <polyline points="6 9 12 15 18 9"></polyline>
+                            </svg>
+                        </div>
+                        <div class="custom-select-options">
+                            <div class="custom-select-option selected" data-value="古代">古代</div>
+                            <div class="custom-select-option" data-value="中世纪">中世纪</div>
+                            <div class="custom-select-option" data-value="近代">近代</div>
+                            <div class="custom-select-option" data-value="现代">现代</div>
+                            <div class="custom-select-option" data-value="未来">未来</div>
+                        </div>
+                        <select id="names-era" style="display: none;">
+                            <option>古代</option>
+                            <option>中世纪</option>
+                            <option>近代</option>
+                            <option>现代</option>
+                            <option>未来</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="input-group">
+                    <label>生成数量：</label>
+                    <input type="number" id="names-count" value="5" min="1" max="20" placeholder="1-20">
+                </div>
+                <button onclick="generateNames()" class="generate-btn">生成名字</button>
+                <div id="names-result" class="result-area"></div>
+            </section>
+
+        </main>
+
+        <!-- 加载状态 -->
+        <div id="loading" class="loading-overlay">
+            <div class="loader">
+                <div class="book">
+                    <div class="page"></div>
+                    <div class="page"></div>
+                    <div class="page"></div>
+                </div>
+                <p>AI正在创作中...</p>
+            </div>
+        </div>
+
+        <!-- 通知 -->
+        <div id="notification" class="notification"></div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
+    <script src="js/dropdown.js"></script>
+    <script src="js/utils.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/tools.js"></script>
+    <script src="js/user-system.js"></script>
+    <script src="js/model-switcher.js"></script>
+    <script src="js/main.js"></script>
+</body>
+</html>

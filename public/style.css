@@ -1,0 +1,45 @@
+/* AI Story Forge - 样式设计
+ * 模块化样式文件 - 主入口
+ *
+ * 模块结构：
+ * - _variables.css   : CSS 变量、基础设置、滚动条
+ * - _base.css        : 基础样式、容器、头部、标签页
+ * - _components.css  : UI 组件（按钮、链接、开关、信息框等）
+ * - _forms.css       : 表单样式、输入框、下拉菜单
+ * - _results.css     : 结果区域、Markdown 样式
+ * - _user-system.css : 用户系统样式（认证、用户中心、模型切换器）
+ * - _admin.css       : 管理员面板样式
+ * - _modal.css       : 模态框样式
+ * - _loading.css     : 加载状态、动画
+ * - _responsive.css  : 响应式设计
+ */
+
+/* 基础设置和变量 */
+@import url('./css/_variables.css');
+
+/* 基础样式 */
+@import url('./css/_base.css');
+
+/* UI 组件 */
+@import url('./css/_components.css');
+
+/* 表单样式 */
+@import url('./css/_forms.css');
+
+/* 结果区域和 Markdown */
+@import url('./css/_results.css');
+
+/* 用户系统 */
+@import url('./css/_user-system.css');
+
+/* 管理员面板 */
+@import url('./css/_admin.css');
+
+/* 模态框 */
+@import url('./css/_modal.css');
+
+/* 加载状态 */
+@import url('./css/_loading.css');
+
+/* 响应式设计 */
+@import url('./css/_responsive.css');

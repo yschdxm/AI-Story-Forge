@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>管理员面板 - AI Story Forge</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Noto+Serif+SC:wght@300;400;600&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- 粒子背景 -->
+    <div id="particles-js"></div>
+
+    <!-- 主容器 -->
+    <div class="container admin-container">
+        <!-- 头部 -->
+        <header class="app-header">
+            <div class="header-content">
+                <div>
+                    <h1>👑 管理员面板</h1>
+                    <p class="subtitle">系统管理与控制</p>
+                </div>
+                <div class="user-controls">
+                    <div id="admin-status" class="user-status">
+                        <span class="loading-text">验证中...</span>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- 导航 -->
+        <nav class="user-nav">
+            <button class="user-tab-btn active" data-tab="settings">⚙️ 系统设置</button>
+            <button class="user-tab-btn" data-tab="users">👥 用户管理</button>
+            <button class="user-tab-btn" data-tab="models">🤖 公用模型</button>
+            <button class="user-tab-btn" onclick="goBack()">← 返回主界面</button>
+        </nav>
+
+        <!-- 内容区域 -->
+        <main class="user-content">
+
+            <!-- 系统设置 -->
+            <section id="settings-tab" class="user-section active">
+                <h2>⚙️ 系统设置</h2>
+
+                <div class="setting-item">
+                    <div class="setting-info">
+                        <h3>注册功能开关</h3>
+                        <p class="setting-desc">控制用户是否可以注册新账户</p>
+                    </div>
+                    <div class="setting-control">
+                        <label class="switch">
+                            <input type="checkbox" id="registration-toggle" onchange="toggleRegistration()">
+                            <span class="slider"></span>
+                        </label>
+                        <span id="registration-status" class="status-text">加载中...</span>
+                    </div>
+                </div>
+
+                <div class="info-box">
+                    <h4>系统信息</h4>
+                    <div class="info-row">
+                        <span>数据库状态:</span>
+                        <span id="db-status">检查中...</span>
+                    </div>
+                    <div class="info-row">
+                        <span>总用户数:</span>
+                        <span id="total-users">-</span>
+                    </div>
+                    <div class="info-row">
+                        <span>管理员数:</span>
+                        <span id="total-admins">-</span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 用户管理 -->
+            <section id="users-tab" class="user-section">
+                <h2>👥 用户管理</h2>
+                <p class="section-desc">管理所有用户账户（不能删除管理员）</p>
+
+                <div class="user-list" id="user-list">
+                    <p class="empty-tip">加载用户列表中...</p>
+                </div>
+            </section>
+
+            <!-- 公用模型管理 -->
+            <section id="models-tab" class="user-section">
+                <h2>🤖 公用模型管理</h2>
+                <p class="section-desc">添加和管理公用AI模型（所有用户可用）</p>
+
+                <div class="input-group">
+                    <label>模型名称：</label>
+                    <input type="text" id="public-model-name" placeholder="例如：GPT-4 Turbo">
+                </div>
+                <div class="input-group">
+                    <label>API URL：</label>
+                    <input type="text" id="public-model-url" placeholder="https://api.example.com/v1/chat/completions">
+                </div>
+                <div class="input-group">
+                    <label>API Key：</label>
+                    <input type="password" id="public-model-key" placeholder="输入API密钥">
+                </div>
+                <div class="input-group">
+                    <label>Model ID：</label>
+                    <input type="text" id="public-model-id" placeholder="例如：gpt-4-turbo">
+                </div>
+                <div class="input-group">
+                    <label>描述（可选）：</label>
+                    <input type="text" id="public-model-desc" placeholder="模型描述">
+                </div>
+                <button onclick="addPublicModel()" class="generate-btn">添加公用模型</button>
+
+                <h3 style="margin-top: 30px;">已添加的公用模型</h3>
+                <div id="public-models-list" class="models-list">
+                    <p class="empty-tip">暂无公用模型</p>
+                </div>
+            </section>
+
+        </main>
+
+        <!-- 通知 -->
+        <div id="notification" class="notification"></div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
+    <script src="js/dropdown.js"></script>
+    <script src="js/utils.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/tools.js"></script>
+    <script src="js/user-system.js"></script>
+    <script src="js/model-switcher.js"></script>
+    <script src="js/admin.js"></script>
+</body>
+</html>

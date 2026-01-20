@@ -1,0 +1,473 @@
+// AI Story Forge - 用户中心功能模块
+// 作者: AI Story Forge
+// 版本: 3.1
+
+let currentUser = null;
+
+/**
+ * 加载用户信息
+ */
+async function loadUserInfo() {
+    try {
+        const token = localStorage.getItem('token');
+        const response = await fetch('/api/auth/me', {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
+
+        const data = await response.json();
+
+        if (data.success && data.user) {
+            currentUser = data.user;
+            document.getElementById('profile-username').textContent = data.user.username;
+            document.getElementById('profile-role').textContent = data.user.role === 'admin' ? '管理员 👑' : '普通用户';
+            document.getElementById('profile-created').textContent = new Date(data.user.createdAt).toLocaleString('zh-CN');
+        } else {
+            logout();
+        }
+    } catch (error) {
+        console.error('加载用户信息错误:', error);
+        logout();
+    }
+}
+
+/**
+ * 更新用户名
+ */
+async function updateUsername() {
+    const newUsername = document.getElementById('new-username').value.trim();
+
+    if (!newUsername) {
+        showNotification('请输入新用户名', 'error');
+        return;
+    }
+
+    if (newUsername.length < 3 || newUsername.length > 20) {
+        showNotification('用户名长度需在3-20个字符之间', 'error');
+        return;
+    }
+
+    showLoading(true);
+
+    try {
+        const token = localStorage.getItem('token');
+        const response = await fetch('/api/user/username', {
+            method: 'PUT',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ newUsername })
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            showNotification('用户名修改成功', 'success');
+            document.getElementById('new-username').value = '';
+            await loadUserInfo();
+        } else {
+            showNotification(data.error || '修改失败', 'error');
+        }
+    } catch (error) {
+        console.error('修改用户名错误:', error);
+        showNotification('网络错误，请稍后重试', 'error');
+    } finally {
+        showLoading(false);
+    }
+}
+
+/**
+ * 更新密码
+ */
+async function updatePassword() {
+    const oldPassword = document.getElementById('old-password').value.trim();
+    const newPassword = document.getElementById('new-password').value.trim();
+    const confirmPassword = document.getElementById('confirm-password').value.trim();
+
+    if (!oldPassword || !newPassword || !confirmPassword) {
+        showNotification('请填写所有字段', 'error');
+        return;
+    }
+
+    if (newPassword.length < 6) {
+        showNotification('新密码长度至少6位', 'error');
+        return;
+    }
+
+    if (newPassword !== confirmPassword) {
+        showNotification('两次输入的新密码不一致', 'error');
+        return;
+    }
+
+    showLoading(true);
+
+    try {
+        const token = localStorage.getItem('token');
+        const response = await fetch('/api/user/password', {
+            method: 'PUT',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ oldPassword, newPassword })
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            showNotification('密码修改成功', 'success');
+            document.getElementById('old-password').value = '';
+            document.getElementById('new-password').value = '';
+            document.getElementById('confirm-password').value = '';
+        } else {
+            showNotification(data.error || '修改失败', 'error');
+        }
+    } catch (error) {
+        console.error('修改密码错误:', error);
+        showNotification('网络错误，请稍后重试', 'error');
+    } finally {
+        showLoading(false);
+    }
+}
+
+/**
+ * 添加模型
+ */
+async function addModel() {
+    const name = document.getElementById('model-name').value.trim();
+    const url = document.getElementById('model-url').value.trim();
+    const apiKey = document.getElementById('model-key').value.trim();
+    const modelId = document.getElementById('model-id').value.trim();
+
+    if (!name || !url || !apiKey || !modelId) {
+        showNotification('请填写所有字段', 'error');
+        return;
+    }
+
+    showLoading(true);
+
+    try {
+        const token = localStorage.getItem('token');
+        const response = await fetch('/api/user/models', {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ name, url, apiKey, modelId })
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            showNotification('模型添加成功', 'success');
+            document.getElementById('model-name').value = '';
+            document.getElementById('model-url').value = '';
+            document.getElementById('model-key').value = '';
+            document.getElementById('model-id').value = '';
+            await loadModels();
+        } else {
+            showNotification(data.error || '添加失败', 'error');
+        }
+    } catch (error) {
+        console.error('添加模型错误:', error);
+        showNotification('网络错误，请稍后重试', 'error');
+    } finally {
+        showLoading(false);
+    }
+}
+
+/**
+ * 加载模型列表
+ */
+async function loadModels() {
+    try {
+        const token = localStorage.getItem('token');
+        const response = await fetch('/api/user/models', {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            const container = document.getElementById('models-list');
+            if (data.customModels.length === 0) {
+                container.innerHTML = '<p class="empty-tip">暂无自定义模型</p>';
+            } else {
+                container.innerHTML = data.customModels.map(model => `
+                    <div class="model-item">
+                        <div class="model-info">
+                            <strong>${model.name}</strong>
+                            <span class="model-id">${model.modelId}</span>
+                        </div>
+                        <button onclick="deleteModel('${model._id}')" class="delete-btn">删除</button>
+                    </div>
+                `).join('');
+            }
+        }
+    } catch (error) {
+        console.error('加载模型错误:', error);
+    }
+}
+
+/**
+ * 删除模型
+ */
+async function deleteModel(modelId) {
+    if (!confirm('确定要删除这个模型吗？')) return;
+
+    showLoading(true);
+
+    try {
+        const token = localStorage.getItem('token');
+        const response = await fetch(`/api/user/models/${modelId}`, {
+            method: 'DELETE',
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            showNotification('模型已删除', 'success');
+            await loadModels();
+        } else {
+            showNotification(data.error || '删除失败', 'error');
+        }
+    } catch (error) {
+        console.error('删除模型错误:', error);
+        showNotification('网络错误，请稍后重试', 'error');
+    } finally {
+        showLoading(false);
+    }
+}
+
+/**
+ * 加载历史记录
+ */
+async function loadHistory() {
+    const type = document.getElementById('history-type').value;
+
+    try {
+        const token = localStorage.getItem('token');
+        const url = type ? `/api/history/list?toolType=${type}` : '/api/history/list';
+        const response = await fetch(url, {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            const container = document.getElementById('history-list');
+            if (data.histories.length === 0) {
+                container.innerHTML = '<p class="empty-tip">暂无历史记录</p>';
+            } else {
+                container.innerHTML = data.histories.map(item => `
+                    <div class="history-item">
+                        <div class="history-header">
+                            <span class="history-type">${getToolTypeName(item.toolType)}</span>
+                            <span class="history-date">${new Date(item.createdAt).toLocaleString('zh-CN')}</span>
+                        </div>
+                        <div class="history-content">${marked.parse(item.content.substring(0, 200) + (item.content.length > 200 ? '...' : ''))}</div>
+                        <div class="history-actions">
+                            <button onclick="viewHistory('${item.id}')" class="view-btn">查看详情</button>
+                            <button onclick="toggleFavorite('${item.id}', ${!item.isFavorite})" class="favorite-btn">${item.isFavorite ? '⭐ 已收藏' : '☆ 收藏'}</button>
+                            <button onclick="deleteHistory('${item.id}')" class="delete-btn">删除</button>
+                        </div>
+                    </div>
+                `).join('');
+            }
+        }
+    } catch (error) {
+        console.error('加载历史记录错误:', error);
+    }
+}
+
+/**
+ * 查看历史记录详情
+ */
+async function viewHistory(id) {
+    try {
+        const token = localStorage.getItem('token');
+        const response = await fetch(`/api/history/${id}`, {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            const modal = document.createElement('div');
+            modal.className = 'modal-overlay';
+            modal.innerHTML = `
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h3>${getToolTypeName(data.history.toolType)}</h3>
+                        <button onclick="this.closest('.modal-overlay').remove()" class="close-btn">✕</button>
+                    </div>
+                    <div class="modal-body">
+                        ${marked.parse(data.history.content)}
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+        }
+    } catch (error) {
+        console.error('查看历史记录错误:', error);
+    }
+}
+
+/**
+ * 收藏/取消收藏
+ */
+async function toggleFavorite(id, favorite) {
+    try {
+        const token = localStorage.getItem('token');
+        const response = await fetch(`/api/history/${id}/favorite`, {
+            method: 'PUT',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ favorite })
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            showNotification(favorite ? '已收藏' : '已取消收藏', 'success');
+            await loadHistory();
+        } else {
+            showNotification(data.error || '操作失败', 'error');
+        }
+    } catch (error) {
+        console.error('收藏操作错误:', error);
+        showNotification('网络错误，请稍后重试', 'error');
+    }
+}
+
+/**
+ * 删除历史记录
+ */
+async function deleteHistory(id) {
+    if (!confirm('确定要删除这条记录吗？')) return;
+
+    showLoading(true);
+
+    try {
+        const token = localStorage.getItem('token');
+        const response = await fetch(`/api/history/${id}`, {
+            method: 'DELETE',
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            showNotification('记录已删除', 'success');
+            await loadHistory();
+        } else {
+            showNotification(data.error || '删除失败', 'error');
+        }
+    } catch (error) {
+        console.error('删除历史记录错误:', error);
+        showNotification('网络错误，请稍后重试', 'error');
+    } finally {
+        showLoading(false);
+    }
+}
+
+/**
+ * 返回主界面
+ */
+function goBack() {
+    window.location.href = 'index.html';
+}
+
+/**
+ * 初始化历史记录类型下拉菜单
+ */
+function initHistoryTypeSelect() {
+    const container = document.getElementById('history-type-select-container');
+    if (!container) return;
+
+    const options = [
+        { value: '', label: '所有类型' },
+        { value: 'character', label: '🎭 角色生成' },
+        { value: 'plot', label: '📖 情节编织' },
+        { value: 'scene', label: '🎨 场景可视化' },
+        { value: 'style', label: '🎭 风格转换' },
+        { value: 'writing', label: '✍️ 互动写作' },
+        { value: 'world', label: '🌍 世界构建' },
+        { value: 'puzzle', label: '🧩 谜题设计' },
+        { value: 'name', label: '🌟 名字生成' }
+    ];
+
+    // 使用组件创建下拉菜单
+    container.innerHTML = createCustomSelect('history-type', options, '');
+
+    // 初始化下拉菜单功能
+    const selectContainer = container.querySelector('.custom-select');
+    if (selectContainer) {
+        initSingleCustomSelect(selectContainer);
+    }
+
+    // 监听change事件
+    const nativeSelect = document.getElementById('history-type');
+    nativeSelect.addEventListener('change', loadHistory);
+}
+
+/**
+ * Tab切换
+ */
+function initUserTabSwitch() {
+    document.addEventListener('click', (e) => {
+        if (e.target.classList.contains('user-tab-btn')) {
+            const tab = e.target.dataset.tab;
+            if (!tab) return;
+
+            // 更新按钮状态
+            document.querySelectorAll('.user-tab-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            e.target.classList.add('active');
+
+            // 更新内容显示
+            document.querySelectorAll('.user-section').forEach(section => {
+                section.classList.remove('active');
+            });
+            document.getElementById(`${tab}-tab`).classList.add('active');
+        }
+    });
+}
+
+/**
+ * 页面初始化
+ */
+document.addEventListener('DOMContentLoaded', async () => {
+    const token = localStorage.getItem('token');
+    if (!token) {
+        window.location.href = 'login.html';
+        return;
+    }
+
+    // 初始化历史记录类型下拉菜单
+    initHistoryTypeSelect();
+
+    await loadUserInfo();
+    await loadModels();
+    await loadHistory();
+
+    // 初始化Tab切换
+    initUserTabSwitch();
+});

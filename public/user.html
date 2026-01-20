@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>用户中心 - AI Story Forge</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Noto+Serif+SC:wght@300;400;600&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- 粒子背景 -->
+    <div id="particles-js"></div>
+
+    <!-- 主容器 -->
+    <div class="container user-container">
+        <!-- 头部 -->
+        <header class="app-header">
+            <h1>✨ AI Story Forge</h1>
+            <p class="subtitle">用户中心</p>
+        </header>
+
+        <!-- 导航 -->
+        <nav class="user-nav">
+            <button class="user-tab-btn active" data-tab="profile">👤 个人资料</button>
+            <button class="user-tab-btn" data-tab="security">🔒 账户安全</button>
+            <button class="user-tab-btn" data-tab="models">🤖 我的模型</button>
+            <button class="user-tab-btn" data-tab="history">📜 历史记录</button>
+            <button class="user-tab-btn" onclick="goBack()">← 返回主界面</button>
+        </nav>
+
+        <!-- 内容区域 -->
+        <main class="user-content">
+
+            <!-- 个人资料 -->
+            <section id="profile-tab" class="user-section active">
+                <h2>👤 个人资料</h2>
+                <div class="profile-info">
+                    <div class="info-item">
+                        <span class="info-label">用户名：</span>
+                        <span id="profile-username" class="info-value">-</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">用户角色：</span>
+                        <span id="profile-role" class="info-value">-</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">注册时间：</span>
+                        <span id="profile-created" class="info-value">-</span>
+                    </div>
+                </div>
+
+                <div class="input-group">
+                    <label>修改用户名：</label>
+                    <input type="text" id="new-username" placeholder="输入新用户名">
+                </div>
+                <button onclick="updateUsername()" class="generate-btn">更新用户名</button>
+            </section>
+
+            <!-- 账户安全 -->
+            <section id="security-tab" class="user-section">
+                <h2>🔒 账户安全</h2>
+                <div class="input-group">
+                    <label>原密码：</label>
+                    <input type="password" id="old-password" placeholder="输入原密码">
+                </div>
+                <div class="input-group">
+                    <label>新密码：</label>
+                    <input type="password" id="new-password" placeholder="输入新密码（至少6位）">
+                </div>
+                <div class="input-group">
+                    <label>确认新密码：</label>
+                    <input type="password" id="confirm-password" placeholder="再次输入新密码">
+                </div>
+                <button onclick="updatePassword()" class="generate-btn">修改密码</button>
+            </section>
+
+            <!-- 我的模型 -->
+            <section id="models-tab" class="user-section">
+                <h2>🤖 我的模型</h2>
+                <p class="section-desc">添加自定义AI模型（使用Open AI SDK格式）</p>
+
+                <div class="input-group">
+                    <label>模型名称：</label>
+                    <input type="text" id="model-name" placeholder="例如：我的GPT-4模型">
+                </div>
+                <div class="input-group">
+                    <label>API URL：</label>
+                    <input type="text" id="model-url" placeholder="https://api.example.com/v1/chat/completions">
+                </div>
+                <div class="input-group">
+                    <label>API Key：</label>
+                    <input type="password" id="model-key" placeholder="输入API密钥">
+                </div>
+                <div class="input-group">
+                    <label>Model ID：</label>
+                    <input type="text" id="model-id" placeholder="例如：gpt-4">
+                </div>
+                <button onclick="addModel()" class="generate-btn">添加模型</button>
+
+                <h3 style="margin-top: 30px;">已添加的模型</h3>
+                <div id="models-list" class="models-list">
+                    <p class="empty-tip">暂无自定义模型</p>
+                </div>
+            </section>
+
+            <!-- 历史记录 -->
+            <section id="history-tab" class="user-section">
+                <h2>📜 历史记录</h2>
+                <div class="history-filters">
+                    <div id="history-type-select-container"></div>
+                    <button onclick="loadHistory()" class="refresh-btn">刷新</button>
+                </div>
+                <div id="history-list" class="history-list">
+                    <p class="empty-tip">暂无历史记录</p>
+                </div>
+            </section>
+
+        </main>
+
+        <!-- 通知 -->
+        <div id="notification" class="notification"></div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
+    <script src="js/dropdown.js"></script>
+    <script src="js/utils.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/tools.js"></script>
+    <script src="js/user-system.js"></script>
+    <script src="js/model-switcher.js"></script>
+    <script src="js/user-profile.js"></script>
+</body>
+</html>

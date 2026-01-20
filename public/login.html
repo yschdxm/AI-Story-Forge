@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>登录 - AI Story Forge</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Noto+Serif+SC:wght@300;400;600&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- 粒子背景 -->
+    <div id="particles-js"></div>
+
+    <!-- 主容器 -->
+    <div class="container auth-container">
+        <!-- 头部 -->
+        <header class="app-header">
+            <h1>✨ AI Story Forge</h1>
+            <p class="subtitle">创意故事工坊 - 与AI共同创作</p>
+        </header>
+
+        <!-- 登录表单 -->
+        <main class="auth-form">
+            <h2>🔐 用户登录</h2>
+
+            <div class="input-group">
+                <label>用户名：</label>
+                <input type="text" id="login-username" placeholder="请输入用户名" autocomplete="username">
+            </div>
+
+            <div class="input-group">
+                <label>密码：</label>
+                <input type="password" id="login-password" placeholder="请输入密码" autocomplete="current-password">
+            </div>
+
+            <div class="auth-actions">
+                <button onclick="login()" class="generate-btn">登录</button>
+                <p class="auth-switch">还没有账号？<a href="register.html">立即注册</a></p>
+            </div>
+        </main>
+
+        <!-- 通知 -->
+        <div id="notification" class="notification"></div>
+
+        <!-- 加载状态 -->
+        <div id="loading" class="loading-overlay">
+            <div class="loader">
+                <div class="book">
+                    <div class="page"></div>
+                    <div class="page"></div>
+                    <div class="page"></div>
+                </div>
+                <p>处理中...</p>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
+    <script src="js/auth.js"></script>
+</body>
+</html>

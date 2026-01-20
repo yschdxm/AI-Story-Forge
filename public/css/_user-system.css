@@ -1,0 +1,330 @@
+/* ==================== 用户系统样式 ==================== */
+
+/* 头部用户状态 */
+.header-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: var(--spacing-lg);
+}
+
+.user-status {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-md);
+    font-size: 0.95em;
+}
+
+.user-welcome {
+    color: var(--gold);
+    font-weight: bold;
+}
+
+.user-role {
+    padding: var(--spacing-xs) var(--spacing-md);
+    border-radius: var(--radius-sm);
+    font-size: 0.85em;
+}
+
+.user-role.admin {
+    background: linear-gradient(135deg, #f59e0b, #d97706);
+    color: #1a0f2e;
+}
+
+.user-role.user {
+    background: rgba(99, 179, 237, 0.2);
+    color: var(--accent-blue);
+    border: 1px solid var(--accent-blue);
+}
+
+/* 模型切换器 */
+.model-switcher {
+    background: var(--glass-bg);
+    backdrop-filter: blur(20px);
+    border-radius: var(--radius-xl);
+    border: 1px solid var(--glass-border);
+    margin-bottom: var(--spacing-xl);
+}
+
+.model-switcher-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--spacing-lg) var(--spacing-xl);
+    background: rgba(107, 70, 193, 0.2);
+    border-bottom: 1px solid var(--glass-border);
+}
+
+.model-switcher-header span:first-child {
+    font-weight: bold;
+    color: var(--gold);
+}
+
+.current-model {
+    color: var(--accent-blue);
+    font-weight: bold;
+}
+
+.model-switcher-body {
+    padding: var(--spacing-lg);
+}
+
+.model-id {
+    font-size: 0.85em;
+    opacity: 0.7;
+    font-family: monospace;
+}
+
+/* 认证页面 */
+.auth-container {
+    max-width: 500px;
+    margin: var(--spacing-3xl) auto;
+}
+
+.auth-form {
+    background: var(--glass-bg);
+    backdrop-filter: blur(20px);
+    border-radius: var(--radius-2xl);
+    padding: var(--spacing-3xl);
+    border: 1px solid var(--glass-border);
+    box-shadow: var(--shadow-md);
+}
+
+.auth-form h2 {
+    font-family: var(--font-display);
+    color: var(--gold);
+    text-align: center;
+    margin-bottom: var(--spacing-2xl);
+    font-size: 2em;
+}
+
+.auth-actions {
+    margin-top: var(--spacing-2xl);
+    text-align: center;
+}
+
+.auth-switch {
+    margin-top: var(--spacing-xl);
+    opacity: 0.8;
+}
+
+.auth-switch a {
+    color: var(--accent-blue);
+    text-decoration: none;
+    font-weight: bold;
+}
+
+.auth-switch a:hover {
+    text-decoration: underline;
+}
+
+.input-hint {
+    display: block;
+    margin-top: var(--spacing-sm);
+    font-size: 0.85em;
+    opacity: 0.6;
+}
+
+/* 用户中心页面 */
+.user-container {
+    max-width: 1000px;
+}
+
+.user-nav {
+    display: flex;
+    gap: var(--spacing-md);
+    margin-bottom: var(--spacing-xl);
+    flex-wrap: wrap;
+}
+
+.user-content {
+    background: var(--glass-bg);
+    backdrop-filter: blur(20px);
+    border-radius: var(--radius-2xl);
+    padding: var(--spacing-2xl);
+    border: 1px solid var(--glass-border);
+    box-shadow: var(--shadow-md);
+}
+
+.user-section {
+    display: none;
+}
+
+.user-section.active {
+    display: block;
+    animation: fadeIn var(--transition-slow);
+}
+
+.user-section h2 {
+    font-family: var(--font-display);
+    color: var(--gold);
+    margin-bottom: var(--spacing-2xl);
+    font-size: 1.8em;
+}
+
+.user-section h3 {
+    color: var(--accent-blue);
+    margin: var(--spacing-2xl) 0 var(--spacing-lg);
+    font-size: 1.3em;
+}
+
+.section-desc {
+    opacity: 0.7;
+    margin-bottom: var(--spacing-xl);
+    font-size: 0.95em;
+}
+
+/* 个人资料 */
+.profile-info {
+    background: rgba(26, 15, 46, 0.5);
+    border-radius: var(--radius-xl);
+    padding: var(--spacing-xl);
+    margin-bottom: var(--spacing-2xl);
+    border: 1px solid var(--glass-border);
+}
+
+.info-item {
+    display: flex;
+    justify-content: space-between;
+    padding: var(--spacing-md) 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.info-item:last-child {
+    border-bottom: none;
+}
+
+.info-label {
+    opacity: 0.7;
+}
+
+.info-value {
+    color: var(--gold);
+    font-weight: bold;
+}
+
+/* 模型列表 */
+.models-list {
+    margin-top: var(--spacing-xl);
+}
+
+.model-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--spacing-lg);
+    background: rgba(26, 15, 46, 0.5);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-lg);
+    margin-bottom: var(--spacing-md);
+}
+
+.model-item .model-info {
+    flex: 1;
+}
+
+.model-item .model-id {
+    margin-top: var(--spacing-xs);
+}
+
+/* 禁用状态的模型 */
+.model-item.disabled {
+    opacity: 0.5;
+    background: rgba(245, 101, 101, 0.1);
+}
+
+.model-item.disabled .model-info strong {
+    text-decoration: line-through;
+}
+
+/* 历史记录 */
+.history-filters {
+    display: flex;
+    gap: var(--spacing-md);
+    margin-bottom: var(--spacing-xl);
+}
+
+.history-filters select {
+    flex: 1;
+    padding: var(--spacing-md);
+    background: rgba(26, 15, 46, 0.5);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-md);
+    color: var(--text-light);
+    font-family: var(--font-serif);
+}
+
+/* 自定义下拉菜单在历史记录过滤器中的样式 */
+.history-filters .custom-select {
+    flex: 1;
+}
+
+.history-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-lg);
+}
+
+.history-item {
+    background: rgba(26, 15, 46, 0.5);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-xl);
+    padding: var(--spacing-lg);
+}
+
+.history-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--spacing-md);
+    padding-bottom: var(--spacing-md);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.history-type {
+    color: var(--gold);
+    font-weight: bold;
+}
+
+.history-date {
+    opacity: 0.6;
+    font-size: 0.85em;
+}
+
+.history-content {
+    opacity: 0.9;
+    margin-bottom: var(--spacing-md);
+    max-height: 150px;
+    overflow-y: auto;
+    padding: var(--spacing-md);
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: var(--radius-md);
+}
+
+.history-actions {
+    display: flex;
+    gap: var(--spacing-sm);
+    flex-wrap: wrap;
+}
+
+.empty-tip {
+    text-align: center;
+    opacity: 0.6;
+    padding: var(--spacing-2xl);
+    font-style: italic;
+}
+
+/* 响应式调整 */
+@media (max-width: 768px) {
+    .user-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: var(--spacing-md);
+    }
+
+    .user-actions {
+        width: 100%;
+        justify-content: flex-end;
+    }
+}
