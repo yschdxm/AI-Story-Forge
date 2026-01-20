@@ -38,6 +38,7 @@
             <button class="tab-btn" data-tool="world">🌍 世界构建器</button>
             <button class="tab-btn" data-tool="puzzle">🧩 谜题设计器</button>
             <button class="tab-btn" data-tool="names">🌟 名字生成器</button>
+            <button class="tab-btn" data-tool="history">📜 历史记录</button>
         </nav>
 
         <!-- 模型切换 -->
@@ -603,6 +604,54 @@
                 </div>
                 <button onclick="generateNames()" class="generate-btn">生成名字</button>
                 <div id="names-result" class="result-area"></div>
+            </section>
+
+            <!-- 历史记录 -->
+            <section id="history-tool" class="tool-section">
+                <h2>📜 历史记录</h2>
+                <div class="input-group">
+                    <label>筛选类型：</label>
+                    <div class="custom-select" data-select="history-type">
+                        <div class="custom-select-trigger">
+                            <span class="custom-select-value">全部</span>
+                            <svg class="custom-select-arrow" viewBox="0 0 24 24" fill="none" stroke="#f687b3" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                <polyline points="6 9 12 15 18 9"></polyline>
+                            </svg>
+                        </div>
+                        <div class="custom-select-options">
+                            <div class="custom-select-option selected" data-value="全部">全部</div>
+                            <div class="custom-select-option" data-value="character">🎭 角色生成器</div>
+                            <div class="custom-select-option" data-value="plot">📖 情节编织器</div>
+                            <div class="custom-select-option" data-value="visual">🎨 场景可视化</div>
+                            <div class="custom-select-option" data-value="style">🎭 风格转换器</div>
+                            <div class="custom-select-option" data-value="cowrite">✍️ 互动写作板</div>
+                            <div class="custom-select-option" data-value="world">🌍 世界构建器</div>
+                            <div class="custom-select-option" data-value="puzzle">🧩 谜题设计器</div>
+                            <div class="custom-select-option" data-value="names">🌟 名字生成器</div>
+                        </div>
+                        <select id="history-type" style="display: none;">
+                            <option>全部</option>
+                            <option>generate-character">🎭 角色生成器</option>
+                            <option>weave-plot">📖 情节编织器</option>
+                            <option>visualize-scene">🎨 场景可视化</option>
+                            <option>transform-style">🎭 风格转换器</option>
+                            <option>co-write">✍️ 互动写作板</option>
+                            <option>build-world">🌍 世界构建器</option>
+                            <option>design-puzzle">🧩 谜题设计器</option>
+                            <option>generate-names">🌟 名字生成器</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="input-group">
+                    <label>操作：</label>
+                    <div class="history-actions">
+                        <button onclick="loadHistory()" class="generate-btn">刷新历史</button>
+                        <button onclick="clearHistory()" class="generate-btn" style="background: #e74c3c;">清空历史</button>
+                    </div>
+                </div>
+                <div id="history-list" class="history-list">
+                    <p class="empty-tip">暂无历史记录</p>
+                </div>
             </section>
 
         </main>

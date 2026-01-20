@@ -174,6 +174,22 @@ router.delete('/:id', authenticateToken, async (req, res) => {
   }
 });
 
+// 清空所有历史记录
+router.delete('/', authenticateToken, async (req, res) => {
+  try {
+    const result = await History.deleteMany({ userId: req.user._id });
+
+    res.json({
+      success: true,
+      message: '历史记录已清空',
+      deletedCount: result.deletedCount
+    });
+  } catch (error) {
+    console.error('清空历史记录错误:', error);
+    res.status(500).json({ success: false, error: '清空失败' });
+  }
+});
+
 // 获取情景演绎可用的选项（预留接口）
 router.get('/scenario/options', authenticateToken, async (req, res) => {
   try {

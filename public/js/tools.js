@@ -573,3 +573,260 @@ ${finalContent}
         showNotification('生成失败: ' + error, 'error');
     });
 }
+
+// 9. 历史记录（非流式）
+async function loadHistory() {
+    const historyType = getCustomSelectValue('history-type');
+
+    // 仅在响应前显示加载状态
+    showLoading();
+
+    const element = document.getElementById('history-list');
+    element.innerHTML = '';
+    element.classList.remove('show');
+
+    try {
+        // 调用API获取历史记录
+        const response = await fetch('/api/history/list', {
+            method: 'GET',
+            headers: {
+                'Authorization': `Bearer ${localStorage.getItem('token')}`
+            }
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            throw new Error(data.error || '获取历史记录失败');
+        }
+
+        // 隐藏加载状态
+        hideLoading();
+
+        let historyData = data.histories || [];
+
+        // 根据类型筛选
+        if (historyType && historyType !== '全部') {
+            historyData = historyData.filter(item => item.toolType === historyType);
+        }
+
+        if (historyData.length === 0) {
+            element.innerHTML = '<p class="empty-tip">暂无历史记录</p>';
+            element.classList.add('show');
+            showNotification('暂无历史记录', 'info');
+            return;
+        }
+
+        // 生成历史记录HTML
+        const html = historyData.map(item => {
+            const toolName = getToolName(item.toolType);
+            const date = new Date(item.createdAt).toLocaleString('zh-CN');
+            const preview = item.content.substring(0, 100) + (item.content.length > 100 ? '...' : '');
+
+            return `
+<div class="history-item show" data-id="${item.id}">
+    <div class="history-header">
+        <span class="history-tool">${toolName}</span>
+        <span class="history-date">${date}</span>
+    </div>
+    <div class="history-content">
+        ${typeof marked !== 'undefined' ? marked.parse(preview) : preview}
+    </div>
+    <div class="history-actions">
+        <button onclick="viewHistory('${item.id}')" class="btn-small">查看</button>
+        <button onclick="deleteHistory('${item.id}')" class="btn-small btn-danger">删除</button>
+        <button onclick="toggleFavorite('${item.id}', ${item.isFavorite})" class="btn-small btn-warning">
+            ${item.isFavorite ? '⭐ 取消收藏' : '☆ 收藏'}
+        </button>
+    </div>
+</div>
+            `;
+        }).join('');
+
+        element.innerHTML = html;
+        element.classList.add('show');
+        showNotification(`加载了 ${historyData.length} 条历史记录`, 'success');
+
+    } catch (error) {
+        hideLoading();
+        showNotification('获取历史记录失败: ' + error.message, 'error');
+    }
+}
+
+// 查看历史记录详情
+async function viewHistory(id) {
+    showLoading();
+
+    try {
+        const response = await fetch(`/api/history/${id}`, {
+            method: 'GET',
+            headers: {
+                'Authorization': `Bearer ${localStorage.getItem('token')}`
+            }
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            throw new Error(data.error || '获取历史记录详情失败');
+        }
+
+        hideLoading();
+
+        const item = data.history;
+        const toolName = getToolName(item.toolType);
+        const date = new Date(item.createdAt).toLocaleString('zh-CN');
+
+        // 显示详情弹窗
+        const modal = document.createElement('div');
+        modal.className = 'modal-overlay';
+        modal.innerHTML = `
+<div class="modal-content">
+    <div class="modal-header">
+        <h3>${toolName} - 历史记录详情</h3>
+        <button onclick="this.closest('.modal-overlay').remove()" class="modal-close">✕</button>
+    </div>
+    <div class="modal-body">
+        <div class="history-detail-info">
+            <p><strong>创建时间：</strong>${date}</p>
+            <p><strong>工具类型：</strong>${toolName}</p>
+            <p><strong>收藏状态：</strong>${item.favorite ? '⭐ 已收藏' : '☆ 未收藏'}</p>
+        </div>
+        <div class="history-detail-content">
+            <h4>生成内容：</h4>
+            <div class="result-area show">
+                ${typeof marked !== 'undefined' ? marked.parse(item.content) : item.content}
+            </div>
+        </div>
+        <div class="history-detail-input">
+            <h4>输入参数：</h4>
+            <pre>${JSON.stringify(item.inputParams, null, 2)}</pre>
+        </div>
+    </div>
+    <div class="modal-footer">
+        <button onclick="this.closest('.modal-overlay').remove()" class="generate-btn">关闭</button>
+    </div>
+</div>
+        `;
+        document.body.appendChild(modal);
+
+    } catch (error) {
+        hideLoading();
+        showNotification('获取历史记录详情失败: ' + error.message, 'error');
+    }
+}
+
+// 删除历史记录
+async function deleteHistory(id) {
+    if (!confirm('确定要删除这条历史记录吗？')) {
+        return;
+    }
+
+    showLoading();
+
+    try {
+        const response = await fetch(`/api/history/${id}`, {
+            method: 'DELETE',
+            headers: {
+                'Authorization': `Bearer ${localStorage.getItem('token')}`
+            }
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            throw new Error(data.error || '删除历史记录失败');
+        }
+
+        hideLoading();
+        showNotification('历史记录已删除', 'success');
+
+        // 重新加载历史记录
+        loadHistory();
+
+    } catch (error) {
+        hideLoading();
+        showNotification('删除历史记录失败: ' + error.message, 'error');
+    }
+}
+
+// 切换收藏状态
+async function toggleFavorite(id, currentFavorite) {
+    showLoading();
+
+    try {
+        const response = await fetch(`/api/history/${id}/favorite`, {
+            method: 'PUT',
+            headers: {
+                'Authorization': `Bearer ${localStorage.getItem('token')}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ favorite: !currentFavorite })
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            throw new Error(data.error || '切换收藏状态失败');
+        }
+
+        hideLoading();
+        showNotification(currentFavorite ? '已取消收藏' : '已收藏', 'success');
+
+        // 重新加载历史记录
+        loadHistory();
+
+    } catch (error) {
+        hideLoading();
+        showNotification('切换收藏状态失败: ' + error.message, 'error');
+    }
+}
+
+// 清空历史记录
+async function clearHistory() {
+    if (!confirm('确定要清空所有历史记录吗？此操作不可恢复！')) {
+        return;
+    }
+
+    showLoading();
+
+    try {
+        const response = await fetch('/api/history', {
+            method: 'DELETE',
+            headers: {
+                'Authorization': `Bearer ${localStorage.getItem('token')}`
+            }
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            throw new Error(data.error || '清空历史记录失败');
+        }
+
+        hideLoading();
+        showNotification('历史记录已清空', 'success');
+
+        // 重新加载历史记录
+        loadHistory();
+
+    } catch (error) {
+        hideLoading();
+        showNotification('清空历史记录失败: ' + error.message, 'error');
+    }
+}
+
+// 获取工具名称
+function getToolName(toolType) {
+    const toolNames = {
+        'character': '🎭 角色生成器',
+        'plot': '📖 情节编织器',
+        'visual': '🎨 场景可视化',
+        'style': '🎭 风格转换器',
+        'cowrite': '✍️ 互动写作板',
+        'world': '🌍 世界构建器',
+        'puzzle': '🧩 谜题设计器',
+        'names': '🌟 名字生成器'
+    };
+    return toolNames[toolType] || '未知工具';
+}

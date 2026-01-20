@@ -248,183 +248,10 @@ async function deleteModel(modelId) {
 }
 
 /**
- * 加载历史记录
- */
-async function loadHistory() {
-    const type = document.getElementById('history-type').value;
-
-    try {
-        const token = localStorage.getItem('token');
-        const url = type ? `/api/history/list?toolType=${type}` : '/api/history/list';
-        const response = await fetch(url, {
-            headers: {
-                'Authorization': `Bearer ${token}`
-            }
-        });
-
-        const data = await response.json();
-
-        if (data.success) {
-            const container = document.getElementById('history-list');
-            if (data.histories.length === 0) {
-                container.innerHTML = '<p class="empty-tip">暂无历史记录</p>';
-            } else {
-                container.innerHTML = data.histories.map(item => `
-                    <div class="history-item">
-                        <div class="history-header">
-                            <span class="history-type">${getToolTypeName(item.toolType)}</span>
-                            <span class="history-date">${new Date(item.createdAt).toLocaleString('zh-CN')}</span>
-                        </div>
-                        <div class="history-content">${marked.parse(item.content.substring(0, 200) + (item.content.length > 200 ? '...' : ''))}</div>
-                        <div class="history-actions">
-                            <button onclick="viewHistory('${item.id}')" class="view-btn">查看详情</button>
-                            <button onclick="toggleFavorite('${item.id}', ${!item.isFavorite})" class="favorite-btn">${item.isFavorite ? '⭐ 已收藏' : '☆ 收藏'}</button>
-                            <button onclick="deleteHistory('${item.id}')" class="delete-btn">删除</button>
-                        </div>
-                    </div>
-                `).join('');
-            }
-        }
-    } catch (error) {
-        console.error('加载历史记录错误:', error);
-    }
-}
-
-/**
- * 查看历史记录详情
- */
-async function viewHistory(id) {
-    try {
-        const token = localStorage.getItem('token');
-        const response = await fetch(`/api/history/${id}`, {
-            headers: {
-                'Authorization': `Bearer ${token}`
-            }
-        });
-
-        const data = await response.json();
-
-        if (data.success) {
-            const modal = document.createElement('div');
-            modal.className = 'modal-overlay';
-            modal.innerHTML = `
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h3>${getToolTypeName(data.history.toolType)}</h3>
-                        <button onclick="this.closest('.modal-overlay').remove()" class="close-btn">✕</button>
-                    </div>
-                    <div class="modal-body">
-                        ${marked.parse(data.history.content)}
-                    </div>
-                </div>
-            `;
-            document.body.appendChild(modal);
-        }
-    } catch (error) {
-        console.error('查看历史记录错误:', error);
-    }
-}
-
-/**
- * 收藏/取消收藏
- */
-async function toggleFavorite(id, favorite) {
-    try {
-        const token = localStorage.getItem('token');
-        const response = await fetch(`/api/history/${id}/favorite`, {
-            method: 'PUT',
-            headers: {
-                'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ favorite })
-        });
-
-        const data = await response.json();
-
-        if (data.success) {
-            showNotification(favorite ? '已收藏' : '已取消收藏', 'success');
-            await loadHistory();
-        } else {
-            showNotification(data.error || '操作失败', 'error');
-        }
-    } catch (error) {
-        console.error('收藏操作错误:', error);
-        showNotification('网络错误，请稍后重试', 'error');
-    }
-}
-
-/**
- * 删除历史记录
- */
-async function deleteHistory(id) {
-    if (!confirm('确定要删除这条记录吗？')) return;
-
-    showLoading(true);
-
-    try {
-        const token = localStorage.getItem('token');
-        const response = await fetch(`/api/history/${id}`, {
-            method: 'DELETE',
-            headers: {
-                'Authorization': `Bearer ${token}`
-            }
-        });
-
-        const data = await response.json();
-
-        if (data.success) {
-            showNotification('记录已删除', 'success');
-            await loadHistory();
-        } else {
-            showNotification(data.error || '删除失败', 'error');
-        }
-    } catch (error) {
-        console.error('删除历史记录错误:', error);
-        showNotification('网络错误，请稍后重试', 'error');
-    } finally {
-        showLoading(false);
-    }
-}
-
-/**
  * 返回主界面
  */
 function goBack() {
     window.location.href = 'index.html';
-}
-
-/**
- * 初始化历史记录类型下拉菜单
- */
-function initHistoryTypeSelect() {
-    const container = document.getElementById('history-type-select-container');
-    if (!container) return;
-
-    const options = [
-        { value: '', label: '所有类型' },
-        { value: 'character', label: '🎭 角色生成' },
-        { value: 'plot', label: '📖 情节编织' },
-        { value: 'scene', label: '🎨 场景可视化' },
-        { value: 'style', label: '🎭 风格转换' },
-        { value: 'writing', label: '✍️ 互动写作' },
-        { value: 'world', label: '🌍 世界构建' },
-        { value: 'puzzle', label: '🧩 谜题设计' },
-        { value: 'name', label: '🌟 名字生成' }
-    ];
-
-    // 使用组件创建下拉菜单
-    container.innerHTML = createCustomSelect('history-type', options, '');
-
-    // 初始化下拉菜单功能
-    const selectContainer = container.querySelector('.custom-select');
-    if (selectContainer) {
-        initSingleCustomSelect(selectContainer);
-    }
-
-    // 监听change事件
-    const nativeSelect = document.getElementById('history-type');
-    nativeSelect.addEventListener('change', loadHistory);
 }
 
 /**
@@ -461,12 +288,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         return;
     }
 
-    // 初始化历史记录类型下拉菜单
-    initHistoryTypeSelect();
-
     await loadUserInfo();
     await loadModels();
-    await loadHistory();
 
     // 初始化Tab切换
     initUserTabSwitch();

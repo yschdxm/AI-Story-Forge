@@ -187,3 +187,222 @@
 .result-area::-webkit-scrollbar-thumb:hover {
     background: var(--accent-pink);
 }
+
+/* ==================== 历史记录样式 ==================== */
+
+/* 历史记录列表容器 */
+.history-list {
+    margin-top: var(--spacing-xl);
+    max-height: 500px;
+    overflow-y: auto;
+    padding-right: 8px;
+}
+
+/* 历史记录列表滚动条美化 */
+.history-list::-webkit-scrollbar {
+    width: 6px;
+}
+
+.history-list::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 3px;
+}
+
+.history-list::-webkit-scrollbar-thumb {
+    background: var(--primary-purple);
+    border-radius: 3px;
+}
+
+.history-list::-webkit-scrollbar-thumb:hover {
+    background: var(--accent-pink);
+}
+
+/* 历史记录项 */
+.history-item {
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: var(--radius-lg);
+    padding: var(--spacing-lg);
+    margin-bottom: var(--spacing-lg);
+    border-left: 4px solid var(--gold);
+    transition: all var(--transition-normal);
+    opacity: 0;
+    transform: translateY(10px);
+}
+
+.history-item.show {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.history-item:hover {
+    background: rgba(0, 0, 0, 0.4);
+    border-left-color: var(--accent-pink);
+    transform: translateX(4px);
+}
+
+/* 历史记录头部 */
+.history-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--spacing-md);
+    padding-bottom: var(--spacing-sm);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.history-tool {
+    font-weight: 600;
+    color: var(--gold);
+    font-size: 1.1em;
+}
+
+.history-date {
+    font-size: 0.85em;
+    color: var(--text-muted);
+    font-family: var(--font-mono);
+}
+
+/* 历史记录内容预览 */
+.history-content {
+    color: var(--text-light);
+    line-height: 1.6;
+    margin-bottom: var(--spacing-md);
+    font-size: 0.95em;
+}
+
+.history-content strong {
+    color: var(--accent-pink);
+}
+
+.history-content em {
+    color: var(--accent-blue);
+}
+
+/* 历史记录操作按钮 */
+.history-actions {
+    display: flex;
+    gap: var(--spacing-sm);
+    flex-wrap: wrap;
+}
+
+.btn-small {
+    padding: 6px 12px;
+    font-size: 0.85em;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--primary-purple);
+    background: rgba(107, 70, 193, 0.2);
+    color: var(--text-light);
+    cursor: pointer;
+    transition: all var(--transition-normal);
+    font-family: var(--font-body);
+}
+
+.btn-small:hover {
+    background: rgba(107, 70, 193, 0.4);
+    border-color: var(--accent-pink);
+    color: var(--accent-pink);
+}
+
+.btn-danger {
+    border-color: #e74c3c;
+    background: rgba(231, 76, 60, 0.2);
+}
+
+.btn-danger:hover {
+    background: rgba(231, 76, 60, 0.4);
+    border-color: #e74c3c;
+    color: #e74c3c;
+}
+
+.btn-warning {
+    border-color: #f39c12;
+    background: rgba(243, 156, 18, 0.2);
+}
+
+.btn-warning:hover {
+    background: rgba(243, 156, 18, 0.4);
+    border-color: #f39c12;
+    color: #f39c12;
+}
+
+/* 历史记录操作区域（筛选和刷新） */
+.history-actions-container {
+    display: flex;
+    gap: var(--spacing-md);
+    margin-bottom: var(--spacing-lg);
+    flex-wrap: wrap;
+}
+
+/* 历史记录详情弹窗内容 */
+.history-detail-info {
+    background: rgba(0, 0, 0, 0.3);
+    padding: var(--spacing-md);
+    border-radius: var(--radius-md);
+    margin-bottom: var(--spacing-md);
+}
+
+.history-detail-info p {
+    margin: 0.5em 0;
+    color: var(--text-light);
+}
+
+.history-detail-info strong {
+    color: var(--gold);
+}
+
+.history-detail-content {
+    margin-bottom: var(--spacing-md);
+}
+
+.history-detail-content h4 {
+    color: var(--gold);
+    margin-bottom: var(--spacing-sm);
+}
+
+.history-detail-input {
+    background: rgba(0, 0, 0, 0.3);
+    padding: var(--spacing-md);
+    border-radius: var(--radius-md);
+    margin-top: var(--spacing-md);
+}
+
+.history-detail-input h4 {
+    color: var(--gold);
+    margin-bottom: var(--spacing-sm);
+}
+
+.history-detail-input pre {
+    background: rgba(0, 0, 0, 0.5);
+    padding: var(--spacing-md);
+    border-radius: var(--radius-md);
+    overflow-x: auto;
+    font-size: 0.85em;
+    color: var(--text-light);
+    border: 1px solid rgba(107, 70, 193, 0.3);
+}
+
+/* 空状态提示 */
+.empty-tip {
+    text-align: center;
+    color: var(--text-muted);
+    padding: var(--spacing-xl);
+    font-style: italic;
+}
+
+/* 刷新按钮样式 */
+.refresh-btn {
+    padding: 8px 16px;
+    background: rgba(107, 70, 193, 0.3);
+    border: 1px solid var(--primary-purple);
+    border-radius: var(--radius-md);
+    color: var(--text-light);
+    cursor: pointer;
+    transition: all var(--transition-normal);
+    font-family: var(--font-body);
+}
+
+.refresh-btn:hover {
+    background: rgba(107, 70, 193, 0.5);
+    border-color: var(--accent-pink);
+    color: var(--accent-pink);
+}

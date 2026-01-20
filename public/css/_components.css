@@ -42,6 +42,41 @@
     background: var(--accent-pink);
 }
 
+/* 小按钮 */
+.btn-small {
+    padding: var(--spacing-sm) var(--spacing-md);
+    background: var(--primary-purple);
+    border: none;
+    border-radius: var(--radius-md);
+    color: white;
+    cursor: pointer;
+    transition: all var(--transition-normal);
+    font-size: 0.9em;
+    font-weight: 600;
+}
+
+.btn-small:hover {
+    background: var(--accent-pink);
+    transform: translateY(-1px);
+}
+
+.btn-small:active {
+    transform: translateY(0);
+}
+
+/* 危险按钮 */
+.btn-danger {
+    background: rgba(245, 101, 101, 0.2);
+    color: #f56565;
+    border: 1px solid #f56565;
+}
+
+.btn-danger:hover {
+    background: #f56565;
+    color: white;
+    border-color: #f56565;
+}
+
 .delete-btn {
     background: rgba(245, 101, 101, 0.2);
     color: #f56565;

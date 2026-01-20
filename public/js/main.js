@@ -22,6 +22,24 @@ document.addEventListener('DOMContentLoaded', function() {
                     section.classList.add('active');
                 }
             });
+
+            // 如果是历史记录标签，自动加载历史记录
+            if (targetTool === 'history') {
+                // 检查用户是否登录
+                const token = localStorage.getItem('token');
+                if (!token) {
+                    showNotification('请先登录以查看历史记录', 'error');
+                    // 延迟跳转到登录页面
+                    setTimeout(() => {
+                        window.location.href = 'login.html';
+                    }, 1500);
+                    return;
+                }
+                // 延迟加载，确保界面切换完成
+                setTimeout(() => {
+                    loadHistory();
+                }, 100);
+            }
         });
     });
 

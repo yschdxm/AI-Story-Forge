@@ -24,7 +24,6 @@
             <button class="user-tab-btn active" data-tab="profile">👤 个人资料</button>
             <button class="user-tab-btn" data-tab="security">🔒 账户安全</button>
             <button class="user-tab-btn" data-tab="models">🤖 我的模型</button>
-            <button class="user-tab-btn" data-tab="history">📜 历史记录</button>
             <button class="user-tab-btn" onclick="goBack()">← 返回主界面</button>
         </nav>
 
@@ -100,18 +99,6 @@
                 <h3 style="margin-top: 30px;">已添加的模型</h3>
                 <div id="models-list" class="models-list">
                     <p class="empty-tip">暂无自定义模型</p>
-                </div>
-            </section>
-
-            <!-- 历史记录 -->
-            <section id="history-tab" class="user-section">
-                <h2>📜 历史记录</h2>
-                <div class="history-filters">
-                    <div id="history-type-select-container"></div>
-                    <button onclick="loadHistory()" class="refresh-btn">刷新</button>
-                </div>
-                <div id="history-list" class="history-list">
-                    <p class="empty-tip">暂无历史记录</p>
                 </div>
             </section>
 
