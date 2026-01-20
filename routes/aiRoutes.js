@@ -62,8 +62,10 @@ router.post('/generate-character', async (req, res) => {
       return res.status(400).json({ success: false, error: '未找到模型配置，请先选择或配置AI模型' });
     }
 
-    // 流式调用AI
-    await callAIStream(userPrompt, systemPrompt, res, 0, modelConfig);
+    // 流式调用AI，并在完成后保存历史记录
+    await callAIStream(userPrompt, systemPrompt, res, 0, modelConfig, (fullContent) => {
+      saveHistory(req, 'character', fullContent, { archetype, setting, traits });
+    });
   } catch (error) {
     if (!res.headersSent) {
       res.json({ success: false, error: error.message });
@@ -87,7 +89,9 @@ router.post('/weave-plot', async (req, res) => {
       return res.status(400).json({ success: false, error: '未找到模型配置，请先选择或配置AI模型' });
     }
 
-    await callAIStream(userPrompt, systemPrompt, res, 0, modelConfig);
+    await callAIStream(userPrompt, systemPrompt, res, 0, modelConfig, (fullContent) => {
+      saveHistory(req, 'plot', fullContent, { keywords, genre, complexity });
+    });
   } catch (error) {
     if (!res.headersSent) {
       res.json({ success: false, error: error.message });
@@ -111,7 +115,9 @@ router.post('/visualize-scene', async (req, res) => {
       return res.status(400).json({ success: false, error: '未找到模型配置，请先选择或配置AI模型' });
     }
 
-    await callAIStream(userPrompt, systemPrompt, res, 0, modelConfig);
+    await callAIStream(userPrompt, systemPrompt, res, 0, modelConfig, (fullContent) => {
+      saveHistory(req, 'scene', fullContent, { sceneDescription, artStyle });
+    });
   } catch (error) {
     if (!res.headersSent) {
       res.json({ success: false, error: error.message });
@@ -135,7 +141,9 @@ router.post('/transform-style', async (req, res) => {
       return res.status(400).json({ success: false, error: '未找到模型配置，请先选择或配置AI模型' });
     }
 
-    await callAIStream(userPrompt, systemPrompt, res, 0, modelConfig);
+    await callAIStream(userPrompt, systemPrompt, res, 0, modelConfig, (fullContent) => {
+      saveHistory(req, 'style', fullContent, { text, targetStyle });
+    });
   } catch (error) {
     if (!res.headersSent) {
       res.json({ success: false, error: error.message });
@@ -159,7 +167,9 @@ router.post('/co-write', async (req, res) => {
       return res.status(400).json({ success: false, error: '未找到模型配置，请先选择或配置AI模型' });
     }
 
-    await callAIStream(userPrompt, systemPrompt, res, 0, modelConfig);
+    await callAIStream(userPrompt, systemPrompt, res, 0, modelConfig, (fullContent) => {
+      saveHistory(req, 'writing', fullContent, { storySoFar, tone, continueWithType });
+    });
   } catch (error) {
     if (!res.headersSent) {
       res.json({ success: false, error: error.message });
@@ -194,7 +204,9 @@ router.post('/build-world', async (req, res) => {
       return res.status(400).json({ success: false, error: '未找到模型配置，请先选择或配置AI模型' });
     }
 
-    await callAIStream(userPrompt, systemPrompt, res, 0, modelConfig);
+    await callAIStream(userPrompt, systemPrompt, res, 0, modelConfig, (fullContent) => {
+      saveHistory(req, 'world', fullContent, { era, technology, magicSystem, culture });
+    });
   } catch (error) {
     if (!res.headersSent) {
       res.json({ success: false, error: error.message });
@@ -226,7 +238,9 @@ router.post('/design-puzzle', async (req, res) => {
       return res.status(400).json({ success: false, error: '未找到模型配置，请先选择或配置AI模型' });
     }
 
-    await callAIStream(userPrompt, systemPrompt, res, 0, modelConfig);
+    await callAIStream(userPrompt, systemPrompt, res, 0, modelConfig, (fullContent) => {
+      saveHistory(req, 'puzzle', fullContent, { puzzleType, difficulty, theme, setting });
+    });
   } catch (error) {
     if (!res.headersSent) {
       res.json({ success: false, error: error.message });
@@ -257,7 +271,9 @@ router.post('/generate-names', async (req, res) => {
       return res.status(400).json({ success: false, error: '未找到模型配置，请先选择或配置AI模型' });
     }
 
-    await callAIStream(userPrompt, systemPrompt, res, 0, modelConfig);
+    await callAIStream(userPrompt, systemPrompt, res, 0, modelConfig, (fullContent) => {
+      saveHistory(req, 'name', fullContent, { culture, gender, era, count });
+    });
   } catch (error) {
     if (!res.headersSent) {
       res.json({ success: false, error: error.message });

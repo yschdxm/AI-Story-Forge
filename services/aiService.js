@@ -21,8 +21,9 @@ const { JWT_SECRET } = require('../middleware/auth');
  * @param {object} res - Express响应对象
  * @param {number} retryCount - 当前重试次数
  * @param {object} modelConfig - 模型配置 { url, apiKey, modelId }
+ * @param {function} onComplete - 流式传输完成后的回调函数 (content) => {}
  */
-async function callAIStream(prompt, systemPrompt = '', res, retryCount = 0, modelConfig = null) {
+async function callAIStream(prompt, systemPrompt = '', res, retryCount = 0, modelConfig = null, onComplete = null) {
   const maxRetries = 3; // 最大重试次数
   const baseDelay = 2000; // 基础延迟2秒
 
@@ -72,6 +73,10 @@ async function callAIStream(prompt, systemPrompt = '', res, retryCount = 0, mode
             // 流式结束
             res.write(`data: ${JSON.stringify({ done: true, content: fullContent })}\n\n`);
             res.end();
+            // 调用回调函数保存历史记录
+            if (onComplete && fullContent) {
+              onComplete(fullContent);
+            }
             return;
           }
 
@@ -96,6 +101,10 @@ async function callAIStream(prompt, systemPrompt = '', res, retryCount = 0, mode
       if (!res.headersSent) {
         res.write(`data: ${JSON.stringify({ done: true, content: fullContent })}\n\n`);
         res.end();
+        // 调用回调函数保存历史记录
+        if (onComplete && fullContent) {
+          onComplete(fullContent);
+        }
       }
     });
 
