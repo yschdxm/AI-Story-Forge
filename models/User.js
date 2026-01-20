@@ -44,14 +44,8 @@ const userSchema = new mongoose.Schema({
     }
   }],
   selectedModel: {
-    type: {
-      id: String,
-      name: String,
-      url: String,
-      apiKey: String,
-      modelId: String,
-      type: String  // 'public' 或 'personal'
-    }
+    type: mongoose.Schema.Types.Mixed,
+    default: null
   },
   createdAt: {
     type: Date,

@@ -12,60 +12,6 @@ const { JWT_SECRET } = require('../middleware/auth');
  * @param {object} modelConfig - 模型配置 { url, apiKey, modelId }
  * @returns {Promise<string>} AI响应内容
  */
-async function callAI(prompt, systemPrompt = '', retryCount = 0, modelConfig = null) {
-  const maxRetries = 3; // 最大重试次数
-  const baseDelay = 2000; // 基础延迟2秒
-
-  // 使用传入的模型配置或默认配置
-  const config = modelConfig;
-
-  try {
-    const response = await axios.post(
-      config.url,
-      {
-        model: config.modelId || config.model,
-        messages: [
-          ...(systemPrompt ? [{ role: 'system', content: systemPrompt }] : []),
-          { role: 'user', content: prompt }
-        ],
-        temperature: 0.8,
-        stream: false
-      },
-      {
-        headers: {
-          'Authorization': `Bearer ${config.apiKey}`,
-          'Content-Type': 'application/json'
-        }
-      }
-    );
-
-    return response.data.choices[0].message.content;
-  } catch (error) {
-    // 检查是否是429错误（请求过多）
-    if (error.response?.status === 429 && retryCount < maxRetries) {
-      const delay = baseDelay * Math.pow(2, retryCount); // 指数退避：2s, 4s, 8s
-
-      console.warn(`429错误：请求过多，${delay/1000}秒后重试... (第${retryCount + 1}次重试)`);
-
-      // 等待指定时间
-      await new Promise(resolve => setTimeout(resolve, delay));
-
-      // 递归重试
-      return callAI(prompt, systemPrompt, retryCount + 1, config);
-    }
-
-    // 其他错误或重试次数用完，按原方法处理
-    console.error('AI API Error:', error.response?.data || error.message);
-
-    if (error.response?.status === 429) {
-      throw new Error('请求过于频繁，请稍后再试');
-    } else if (error.code === 'ECONNABORTED') {
-      throw new Error('请求超时');
-    } else {
-      throw new Error('AI服务调用失败');
-    }
-  }
-}
 
 /**
  * AI服务核心函数 - 流式（带429错误自动重试）
@@ -231,7 +177,6 @@ async function getModelConfigFromRequest(req) {
 }
 
 module.exports = {
-  callAI,
   callAIStream,
   getModelConfigFromRequest
 };
