@@ -7,6 +7,8 @@
     "start": "node server.js",
     "dev": "nodemon server.js",
     "create-admin": "node scripts/create-admin.js",
+    "create-admin:default": "node scripts/create-admin.js",
+    "create-admin:custom": "node scripts/create-admin.js",
     "migrate-db": "node scripts/migrate-db.js",
     "migrate-db:dry-run": "node scripts/migrate-db.js --dry-run",
     "migrate-db:remove-extra": "node scripts/migrate-db.js --remove-extra"
