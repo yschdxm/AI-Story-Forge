@@ -609,8 +609,7 @@
             <!-- 历史记录 -->
             <section id="history-tool" class="tool-section">
                 <h2>📜 历史记录</h2>
-                <div class="input-group">
-                    <label>筛选类型：</label>
+                <div class="history-actions-container">
                     <div class="custom-select" data-select="history-type">
                         <div class="custom-select-trigger">
                             <span class="custom-select-value">全部</span>
@@ -643,12 +642,9 @@
                             <option value="favorite">⭐ 收藏</option>
                         </select>
                     </div>
-                </div>
-                <div class="input-group">
-                    <label>操作：</label>
                     <div class="history-actions">
-                        <button onclick="loadHistory()" class="generate-btn">刷新历史</button>
-                        <button onclick="clearHistory()" class="generate-btn" style="background: #e74c3c;">清空历史</button>
+                        <button onclick="loadHistory()" class="btn-small">刷新历史</button>
+                        <button onclick="clearHistory()" class="btn-small btn-danger">清空历史</button>
                     </div>
                 </div>
                 <div id="history-list" class="history-list">
