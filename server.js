@@ -35,6 +35,10 @@ app.use('/api/admin', adminRoutes);
 const historyRoutes = require('./routes/history');
 app.use('/api/history', historyRoutes);
 
+// 收藏夹路由
+const favoritesRoutes = require('./routes/favorites');
+app.use('/api/favorites', favoritesRoutes);
+
 // AI工具路由（流式）
 const aiRoutes = require('./routes/aiRoutes');
 app.use('/api', aiRoutes);

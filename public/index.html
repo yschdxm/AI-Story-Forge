@@ -39,6 +39,7 @@
             <button class="tab-btn" data-tool="puzzle">🧩 谜题设计器</button>
             <button class="tab-btn" data-tool="names">🌟 名字生成器</button>
             <button class="tab-btn" data-tool="history">📜 历史记录</button>
+            <button class="tab-btn" data-tool="favorites">⭐ 收藏夹</button>
         </nav>
 
         <!-- 模型切换 -->
@@ -649,6 +650,49 @@
                 </div>
                 <div id="history-list" class="history-list">
                     <p class="empty-tip">暂无历史记录</p>
+                </div>
+            </section>
+
+            <!-- 收藏夹 -->
+            <section id="favorites-tool" class="tool-section">
+                <h2>⭐ 收藏夹</h2>
+                <div class="history-actions-container">
+                    <div class="custom-select" data-select="favorites-type">
+                        <div class="custom-select-trigger">
+                            <span class="custom-select-value">全部</span>
+                            <svg class="custom-select-arrow" viewBox="0 0 24 24" fill="none" stroke="#f687b3" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                <polyline points="6 9 12 15 18 9"></polyline>
+                            </svg>
+                        </div>
+                        <div class="custom-select-options">
+                            <div class="custom-select-option selected" data-value="全部">全部</div>
+                            <div class="custom-select-option" data-value="character">🎭 角色生成器</div>
+                            <div class="custom-select-option" data-value="plot">📖 情节编织器</div>
+                            <div class="custom-select-option" data-value="visual">🎨 场景可视化</div>
+                            <div class="custom-select-option" data-value="style">🎭 风格转换器</div>
+                            <div class="custom-select-option" data-value="cowrite">✍️ 互动写作板</div>
+                            <div class="custom-select-option" data-value="world">🌍 世界构建器</div>
+                            <div class="custom-select-option" data-value="puzzle">🧩 谜题设计器</div>
+                            <div class="custom-select-option" data-value="names">🌟 名字生成器</div>
+                        </div>
+                        <select id="favorites-type" style="display: none;">
+                            <option value="全部" selected>全部</option>
+                            <option value="character">🎭 角色生成器</option>
+                            <option value="plot">📖 情节编织器</option>
+                            <option value="visual">🎨 场景可视化</option>
+                            <option value="style">🎭 风格转换器</option>
+                            <option value="cowrite">✍️ 互动写作板</option>
+                            <option value="world">🌍 世界构建器</option>
+                            <option value="puzzle">🧩 谜题设计器</option>
+                            <option value="names">🌟 名字生成器</option>
+                        </select>
+                    </div>
+                    <div class="history-actions">
+                        <button onclick="loadFavorites()" class="btn-small">刷新收藏</button>
+                    </div>
+                </div>
+                <div id="favorites-list" class="history-list">
+                    <p class="empty-tip">暂无收藏记录</p>
                 </div>
             </section>
 

@@ -46,6 +46,24 @@ document.addEventListener('DOMContentLoaded', function() {
                     loadHistory();
                 }, 100);
             }
+
+            // 如果是收藏夹标签，自动加载收藏夹
+            if (targetTool === 'favorites') {
+                // 检查用户是否登录
+                const token = localStorage.getItem('token');
+                if (!token) {
+                    showNotification('请先登录以查看收藏夹', 'error');
+                    // 延迟跳转到登录页面
+                    setTimeout(() => {
+                        window.location.href = 'login.html';
+                    }, 1500);
+                    return;
+                }
+                // 延迟加载，确保界面切换完成
+                setTimeout(() => {
+                    loadFavorites();
+                }, 100);
+            }
         });
     });
 
@@ -80,6 +98,16 @@ function restoreLastActiveTab(tabButtons, toolSections) {
                 if (token) {
                     setTimeout(() => {
                         loadHistory();
+                    }, 100);
+                }
+            }
+
+            // 如果是收藏夹标签，自动加载收藏夹
+            if (lastActiveTab === 'favorites') {
+                const token = localStorage.getItem('token');
+                if (token) {
+                    setTimeout(() => {
+                        loadFavorites();
                     }, 100);
                 }
             }

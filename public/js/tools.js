@@ -821,3 +821,162 @@ function getToolName(toolType) {
     };
     return toolNames[toolType] || '未知工具';
 }
+
+// 10. 收藏夹（非流式）
+async function loadFavorites() {
+    const favoritesType = getCustomSelectValue('favorites-type');
+
+    const element = document.getElementById('favorites-list');
+    // 显示局部加载提示
+    element.innerHTML = '<p class="empty-tip">加载中...</p>';
+    element.classList.remove('show');
+
+    try {
+        // 调用API获取收藏夹列表
+        let url = '/api/favorites/list';
+        if (favoritesType && favoritesType !== '全部') {
+            url += `?toolType=${favoritesType}`;
+        }
+
+        const response = await fetch(url, {
+            method: 'GET',
+            headers: {
+                'Authorization': `Bearer ${localStorage.getItem('token')}`
+            }
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            throw new Error(data.error || '获取收藏夹失败');
+        }
+
+        let favoritesData = data.favorites || [];
+
+        if (favoritesData.length === 0) {
+            element.innerHTML = '<p class="empty-tip">暂无收藏记录</p>';
+            element.classList.add('show');
+            showNotification('暂无收藏记录', 'info');
+            return;
+        }
+
+        // 生成收藏夹HTML
+        const html = favoritesData.map(item => {
+            const toolName = getToolName(item.toolType);
+            const date = new Date(item.createdAt).toLocaleString('zh-CN');
+            const preview = item.content.substring(0, 100) + (item.content.length > 100 ? '...' : '');
+
+            return `
+<div class="history-item show" data-id="${item.id}">
+    <div class="history-header">
+        <span class="history-tool">${toolName}</span>
+        <span class="history-date">${date}</span>
+    </div>
+    <div class="history-content">
+        ${typeof marked !== 'undefined' ? marked.parse(preview) : preview}
+    </div>
+    <div class="history-actions">
+        <button onclick="viewFavorite('${item.id}')" class="btn-small">查看</button>
+        <button onclick="removeFromFavorites('${item.id}')" class="btn-small btn-warning">⭐ 移除收藏</button>
+    </div>
+</div>
+            `;
+        }).join('');
+
+        element.innerHTML = html;
+        element.classList.add('show');
+        showNotification(`加载了 ${favoritesData.length} 条收藏记录`, 'success');
+
+    } catch (error) {
+        showNotification('获取收藏夹失败: ' + error.message, 'error');
+    }
+}
+
+// 查看收藏记录详情
+async function viewFavorite(id) {
+    try {
+        const response = await fetch(`/api/favorites/${id}`, {
+            method: 'GET',
+            headers: {
+                'Authorization': `Bearer ${localStorage.getItem('token')}`
+            }
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            throw new Error(data.error || '获取收藏记录详情失败');
+        }
+
+        const item = data.favorite;
+        const toolName = getToolName(item.toolType);
+        const date = new Date(item.createdAt).toLocaleString('zh-CN');
+
+        // 显示详情弹窗
+        const modal = document.createElement('div');
+        modal.className = 'modal-overlay';
+        modal.innerHTML = `
+<div class="modal-content">
+    <div class="modal-header">
+        <h3>${toolName} - 收藏记录详情</h3>
+        <button onclick="this.closest('.modal-overlay').remove()" class="close-btn">✕</button>
+    </div>
+    <div class="modal-body">
+        <div class="history-detail-info">
+            <p><strong>创建时间：</strong>${date}</p>
+            <p><strong>工具类型：</strong>${toolName}</p>
+            <p><strong>状态：</strong>⭐ 已收藏</p>
+        </div>
+        <div class="history-detail-content">
+            <h4>生成内容：</h4>
+            <div class="result-area show">
+                ${typeof marked !== 'undefined' ? marked.parse(item.content) : item.content}
+            </div>
+        </div>
+        <div class="history-detail-input">
+            <h4>输入参数：</h4>
+            <pre>${JSON.stringify(item.inputParams, null, 2)}</pre>
+        </div>
+    </div>
+</div>
+        `;
+        document.body.appendChild(modal);
+
+    } catch (error) {
+        showNotification('获取收藏记录详情失败: ' + error.message, 'error');
+    }
+}
+
+// 从收藏夹移除记录（不删除原记录）
+async function removeFromFavorites(id) {
+    if (!confirm('确定要从收藏夹移除这条记录吗？原记录仍会保留在历史记录中。')) {
+        return;
+    }
+
+    showLoading();
+
+    try {
+        const response = await fetch(`/api/favorites/${id}`, {
+            method: 'DELETE',
+            headers: {
+                'Authorization': `Bearer ${localStorage.getItem('token')}`
+            }
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            throw new Error(data.error || '移除收藏失败');
+        }
+
+        hideLoading();
+        showNotification('已从收藏夹移除', 'success');
+
+        // 重新加载收藏夹
+        loadFavorites();
+
+    } catch (error) {
+        hideLoading();
+        showNotification('移除收藏失败: ' + error.message, 'error');
+    }
+}
