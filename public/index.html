@@ -16,13 +16,19 @@
         <!-- 头部 -->
         <header class="app-header">
             <div class="header-content">
-                <div>
+                <div class="header-title">
                     <h1>✨ AI Story Forge</h1>
                     <p class="subtitle">创意故事工坊 - 与AI共同创作</p>
                 </div>
                 <div class="user-controls">
                     <div id="user-status" class="user-status">
                         <span class="loading-text">加载中...</span>
+                    </div>
+                    <!-- 模型切换器 -->
+                    <div class="model-switcher-header">
+                        <span>🤖 模型:</span>
+                        <span id="current-model" class="current-model">加载中...</span>
+                        <div id="model-select-container"></div>
                     </div>
                 </div>
             </div>
@@ -41,20 +47,6 @@
             <button class="tab-btn" data-tool="history">📜 历史记录</button>
             <button class="tab-btn" data-tool="favorites">⭐ 收藏夹</button>
         </nav>
-
-        <!-- 模型切换 -->
-        <div class="model-switcher">
-            <div class="model-switcher-header">
-                <span>🤖 AI模型切换</span>
-                <span id="current-model" class="current-model">加载中...</span>
-            </div>
-            <div class="model-switcher-body">
-                <div class="input-group">
-                    <label>选择模型：</label>
-                    <div id="model-select-container"></div>
-                </div>
-            </div>
-        </div>
 
         <!-- 工具内容区域 -->
         <main class="tool-content">

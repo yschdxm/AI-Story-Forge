@@ -7,6 +7,24 @@
         font-size: 2em;
     }
 
+    .header-content {
+        flex-direction: column;
+        align-items: center;
+        gap: var(--spacing-lg);
+    }
+
+    .header-title {
+        min-width: auto;
+        width: 100%;
+    }
+
+    .user-controls {
+        flex-direction: column;
+        align-items: center;
+        width: 100%;
+        gap: var(--spacing-md);
+    }
+
     .tool-tabs {
         flex-direction: column;
     }
@@ -65,5 +83,25 @@
     .setting-control {
         width: 100%;
         justify-content: space-between;
+    }
+
+    /* 顶栏模型切换器在移动端的特殊样式 */
+    .user-status {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .model-switcher-header {
+        width: 100%;
+        justify-content: space-between;
+    }
+
+    #model-select-container {
+        width: 100%;
+        min-width: auto;
+    }
+
+    #model-select-container .custom-select-trigger {
+        width: 100%;
     }
 }
