@@ -89,11 +89,35 @@
     .user-status {
         width: 100%;
         justify-content: center;
+        flex-wrap: wrap;
+        gap: var(--spacing-sm);
+        padding: var(--spacing-md);
+    }
+
+    .user-status .user-welcome,
+    .user-status .user-role {
+        width: 100%;
+        text-align: center;
+        justify-content: center;
+    }
+
+    .user-status .user-role {
+        margin-bottom: var(--spacing-sm);
+    }
+
+    .user-status .user-center-link,
+    .user-status .logout-btn {
+        flex: 1;
+        min-width: 80px;
+        text-align: center;
+        justify-content: center;
     }
 
     .model-switcher-header {
         width: 100%;
         justify-content: space-between;
+        flex-wrap: wrap;
+        gap: var(--spacing-sm);
     }
 
     #model-select-container {

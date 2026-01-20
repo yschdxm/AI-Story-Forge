@@ -135,28 +135,48 @@
     color: var(--primary-dark);
 }
 
-.user-center-link {
+/* 顶栏用户控制按钮 - 统一高度 */
+.user-center-link,
+.logout-btn,
+.admin-link {
     color: var(--accent-pink);
     text-decoration: none;
-    padding: var(--spacing-sm) var(--spacing-md);
+    padding: var(--spacing-xs) var(--spacing-md);
     border: 1px solid var(--accent-pink);
     border-radius: var(--radius-sm);
     transition: all var(--transition-normal);
+    font-size: 0.9em;
+    white-space: nowrap;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 32px;
+    height: 32px;
 }
 
-.user-center-link:hover {
+.user-center-link:hover,
+.admin-link:hover {
     background: var(--accent-pink);
     color: var(--primary-dark);
 }
 
+/* 管理面板按钮特殊样式 */
+.admin-link {
+    color: var(--gold);
+    border-color: var(--gold);
+}
+
+.admin-link:hover {
+    background: var(--gold);
+    color: var(--primary-dark);
+}
+
+/* 退出按钮 */
 .logout-btn {
     background: rgba(245, 101, 101, 0.2);
     color: #f56565;
     border: 1px solid #f56565;
-    padding: var(--spacing-sm) var(--spacing-md);
-    border-radius: var(--radius-sm);
     cursor: pointer;
-    transition: all var(--transition-normal);
 }
 
 .logout-btn:hover {

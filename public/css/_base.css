@@ -39,6 +39,8 @@ body {
     border-radius: var(--radius-2xl);
     border: 1px solid var(--glass-border);
     box-shadow: 0 8px 32px rgba(107, 70, 193, 0.2);
+    position: relative;
+    z-index: var(--z-base);
 }
 
 .app-header h1 {
@@ -65,6 +67,8 @@ body {
     margin-bottom: var(--spacing-xl);
     flex-wrap: wrap;
     justify-content: center;
+    position: relative;
+    z-index: calc(var(--z-base) - 1);
 }
 
 .tab-btn {
