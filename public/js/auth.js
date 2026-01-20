@@ -2,7 +2,7 @@
 // 作者: AI Story Forge
 // 版本: 3.1
 
-// 注意: showNotification() 和 showLoading() 函数在 utils.js 中定义
+// 注意: showNotification() 函数在 utils.js 中定义
 
 /**
  * 登录函数
@@ -15,8 +15,6 @@ async function login() {
         showNotification('请输入用户名和密码', 'error');
         return;
     }
-
-    showLoading(true);
 
     try {
         const response = await fetch('/api/auth/login', {
@@ -44,8 +42,6 @@ async function login() {
     } catch (error) {
         console.error('登录错误:', error);
         showNotification('网络错误，请稍后重试', 'error');
-    } finally {
-        showLoading(false);
     }
 }
 
@@ -77,8 +73,6 @@ async function register() {
         return;
     }
 
-    showLoading(true);
-
     try {
         const response = await fetch('/api/auth/register', {
             method: 'POST',
@@ -105,8 +99,6 @@ async function register() {
     } catch (error) {
         console.error('注册错误:', error);
         showNotification('网络错误，请稍后重试', 'error');
-    } finally {
-        showLoading(false);
     }
 }
 
