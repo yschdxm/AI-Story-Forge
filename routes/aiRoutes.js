@@ -116,7 +116,7 @@ router.post('/visualize-scene', async (req, res) => {
     }
 
     await callAIStream(userPrompt, systemPrompt, res, 0, modelConfig, (fullContent) => {
-      saveHistory(req, 'scene', fullContent, { sceneDescription, artStyle });
+      saveHistory(req, 'visual', fullContent, { sceneDescription, artStyle });
     });
   } catch (error) {
     if (!res.headersSent) {
@@ -168,7 +168,7 @@ router.post('/co-write', async (req, res) => {
     }
 
     await callAIStream(userPrompt, systemPrompt, res, 0, modelConfig, (fullContent) => {
-      saveHistory(req, 'writing', fullContent, { storySoFar, tone, continueWithType });
+      saveHistory(req, 'cowrite', fullContent, { storySoFar, tone, continueWithType });
     });
   } catch (error) {
     if (!res.headersSent) {
@@ -272,7 +272,7 @@ router.post('/generate-names', async (req, res) => {
     }
 
     await callAIStream(userPrompt, systemPrompt, res, 0, modelConfig, (fullContent) => {
-      saveHistory(req, 'name', fullContent, { culture, gender, era, count });
+      saveHistory(req, 'names', fullContent, { culture, gender, era, count });
     });
   } catch (error) {
     if (!res.headersSent) {

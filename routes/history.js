@@ -201,6 +201,8 @@ router.get('/scenario/options', authenticateToken, async (req, res) => {
     const options = {
       characters: [],
       plots: [],
+      visuals: [],
+      cowrites: [],
       worlds: [],
       names: [],
       puzzles: []
@@ -247,7 +249,7 @@ router.get('/scenario/options', authenticateToken, async (req, res) => {
       }
 
       // 提取名字信息
-      if (toolType === 'name' && inputParams) {
+      if (toolType === 'names' && inputParams) {
         const nameData = {
           id: history._id,
           culture: inputParams.culture,
@@ -269,6 +271,29 @@ router.get('/scenario/options', authenticateToken, async (req, res) => {
         };
         options.puzzles.push(puzzleData);
       }
+
+      // 提取场景可视化信息
+      if (toolType === 'visual' && inputParams) {
+        const visualData = {
+          id: history._id,
+          sceneDescription: inputParams.sceneDescription,
+          artStyle: inputParams.artStyle,
+          createdAt: history.createdAt
+        };
+        options.visuals.push(visualData);
+      }
+
+      // 提取互动写作信息
+      if (toolType === 'cowrite' && inputParams) {
+        const cowriteData = {
+          id: history._id,
+          storySoFar: inputParams.storySoFar,
+          tone: inputParams.tone,
+          continueWithType: inputParams.continueWithType,
+          createdAt: history.createdAt
+        };
+        options.cowrites.push(cowriteData);
+      }
     });
 
     res.json({
@@ -276,6 +301,8 @@ router.get('/scenario/options', authenticateToken, async (req, res) => {
       options: {
         characters: options.characters.slice(0, 20), // 限制数量
         plots: options.plots.slice(0, 20),
+        visuals: options.visuals.slice(0, 20),
+        cowrites: options.cowrites.slice(0, 20),
         worlds: options.worlds.slice(0, 20),
         names: options.names.slice(0, 20),
         puzzles: options.puzzles.slice(0, 20)
@@ -308,6 +335,21 @@ function extractMetadata(toolType, inputParams) {
       }];
       break;
 
+    case 'visual':
+      metadata.extractedVisuals = [{
+        sceneDescription: inputParams.sceneDescription,
+        artStyle: inputParams.artStyle
+      }];
+      break;
+
+    case 'cowrite':
+      metadata.extractedCowrites = [{
+        storySoFar: inputParams.storySoFar,
+        tone: inputParams.tone,
+        continueWithType: inputParams.continueWithType
+      }];
+      break;
+
     case 'world':
       metadata.extractedWorlds = [{
         era: inputParams.era,
@@ -317,7 +359,7 @@ function extractMetadata(toolType, inputParams) {
       }];
       break;
 
-    case 'name':
+    case 'names':
       metadata.extractedNames = [{
         culture: inputParams.culture,
         gender: inputParams.gender,

@@ -11,7 +11,7 @@ const historySchema = new mongoose.Schema({
   toolType: {
     type: String,
     required: true,
-    enum: ['character', 'plot', 'scene', 'style', 'writing', 'world', 'puzzle', 'name']
+    enum: ['character', 'plot', 'visual', 'style', 'cowrite', 'world', 'puzzle', 'names']
   },
   // 生成的内容
   content: {
@@ -80,6 +80,17 @@ const historySchema = new mongoose.Schema({
       keywords: String,
       genre: String,
       complexity: String
+    }],
+    // 提取的场景可视化信息
+    extractedVisuals: [{
+      sceneDescription: String,
+      artStyle: String
+    }],
+    // 提取的互动写作信息
+    extractedCowrites: [{
+      storySoFar: String,
+      tone: String,
+      continueWithType: String
     }],
     // 提取的世界信息
     extractedWorlds: [{
