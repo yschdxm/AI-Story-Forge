@@ -578,11 +578,9 @@ ${finalContent}
 async function loadHistory() {
     const historyType = getCustomSelectValue('history-type');
 
-    // 仅在响应前显示加载状态
-    showLoading();
-
     const element = document.getElementById('history-list');
-    element.innerHTML = '';
+    // 显示局部加载提示
+    element.innerHTML = '<p class="empty-tip">加载中...</p>';
     element.classList.remove('show');
 
     try {
@@ -599,9 +597,6 @@ async function loadHistory() {
         if (!response.ok) {
             throw new Error(data.error || '获取历史记录失败');
         }
-
-        // 隐藏加载状态
-        hideLoading();
 
         let historyData = data.histories || [];
 
@@ -648,7 +643,6 @@ async function loadHistory() {
         showNotification(`加载了 ${historyData.length} 条历史记录`, 'success');
 
     } catch (error) {
-        hideLoading();
         showNotification('获取历史记录失败: ' + error.message, 'error');
     }
 }
@@ -752,8 +746,6 @@ async function deleteHistory(id) {
 
 // 切换收藏状态
 async function toggleFavorite(id, currentFavorite) {
-    showLoading();
-
     try {
         const response = await fetch(`/api/history/${id}/favorite`, {
             method: 'PUT',
@@ -770,14 +762,21 @@ async function toggleFavorite(id, currentFavorite) {
             throw new Error(data.error || '切换收藏状态失败');
         }
 
-        hideLoading();
         showNotification(currentFavorite ? '已取消收藏' : '已收藏', 'success');
 
-        // 重新加载历史记录
-        loadHistory();
+        // 更新当前卡片的UI状态，而不是重新加载整个列表
+        const historyItem = document.querySelector(`[data-id="${id}"]`);
+        if (historyItem) {
+            const favoriteBtn = historyItem.querySelector('.btn-warning');
+            if (favoriteBtn) {
+                // 更新按钮文本和状态
+                const newFavoriteState = !currentFavorite;
+                favoriteBtn.textContent = newFavoriteState ? '⭐ 取消收藏' : '☆ 收藏';
+                favoriteBtn.onclick = () => toggleFavorite(id, newFavoriteState);
+            }
+        }
 
     } catch (error) {
-        hideLoading();
         showNotification('切换收藏状态失败: ' + error.message, 'error');
     }
 }
@@ -788,7 +787,7 @@ async function clearHistory() {
         return;
     }
 
-    showLoading();
+
 
     try {
         const response = await fetch('/api/history', {
@@ -804,14 +803,14 @@ async function clearHistory() {
             throw new Error(data.error || '清空历史记录失败');
         }
 
-        hideLoading();
+
         showNotification('历史记录已清空', 'success');
 
         // 重新加载历史记录
         loadHistory();
 
     } catch (error) {
-        hideLoading();
+
         showNotification('清空历史记录失败: ' + error.message, 'error');
     }
 }

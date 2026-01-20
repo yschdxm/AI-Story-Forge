@@ -46,6 +46,17 @@ document.addEventListener('DOMContentLoaded', function() {
     // 初始化自定义下拉菜单
     initCustomSelects();
 
+    // 为历史记录筛选下拉菜单添加自动筛选功能
+    const historyTypeSelect = document.getElementById('history-type');
+    if (historyTypeSelect) {
+        historyTypeSelect.addEventListener('change', function() {
+            // 延迟一小段时间，确保下拉菜单UI更新完成
+            setTimeout(() => {
+                loadHistory();
+            }, 50);
+        });
+    }
+
     // 初始化粒子背景
     if (typeof particlesJS !== 'undefined') {
         particlesJS('particles-js', {
