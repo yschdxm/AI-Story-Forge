@@ -43,6 +43,10 @@ app.use('/api/favorites', favoritesRoutes);
 const aiRoutes = require('./routes/aiRoutes');
 app.use('/api', aiRoutes);
 
+// 故事演绎路由
+const storyRoutes = require('./routes/story');
+app.use('/api/story', storyRoutes);
+
 // 心跳检查
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok' });

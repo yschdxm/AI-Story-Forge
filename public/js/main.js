@@ -165,6 +165,31 @@ function restoreLastActivePage(navButtons, pageSections, tabButtons, toolSection
     // 如果没有保存的页面或模块，使用默认值
     // 默认页面：故事演绎（story演绎）
     // 默认模块：角色生成器（第一个模块）
+
+    // 如果没有恢复到任何页面，默认显示故事演绎
+    if (!lastActivePage) {
+        // 设置默认导航按钮
+        const defaultNavButton = document.querySelector('[data-page="story演绎"]');
+        const defaultPageSection = document.getElementById('story演绎-page');
+
+        if (defaultNavButton && defaultPageSection) {
+            navButtons.forEach(b => b.classList.remove('active'));
+            defaultNavButton.classList.add('active');
+
+            pageSections.forEach(section => {
+                section.classList.remove('active');
+            });
+            defaultPageSection.classList.add('active');
+
+            // 加载故事列表
+            const token = localStorage.getItem('token');
+            if (token) {
+                setTimeout(() => {
+                    loadStoryList();
+                }, 100);
+            }
+        }
+    }
 }
 
 // 为历史记录筛选下拉菜单添加自动筛选功能

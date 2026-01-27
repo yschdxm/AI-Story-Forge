@@ -43,11 +43,85 @@
         <!-- 工具内容区域 -->
         <main class="tool-content">
 
-            <!-- 故事演绎页面（留空） -->
+            <!-- 故事演绎页面 -->
             <section id="story演绎-page" class="page-section">
-                <div class="empty-page">
+                <!-- 顶部操作栏 -->
+                <div class="story-list-header">
+                    <div class="search-box">
+                        <input type="text" id="story-search" placeholder="搜索故事...">
+                    </div>
+                    <div class="action-buttons">
+                        <button onclick="openCreateStoryModal()" class="btn-primary">创建故事</button>
+                        <button onclick="deleteAllStories()" class="btn-danger">删除全部</button>
+                    </div>
+                </div>
+
+                <!-- 故事卡片列表 -->
+                <div id="story-list" class="story-list"></div>
+
+                <!-- 空状态 -->
+                <div id="story-empty" class="empty-page" style="display: none;">
                     <h2>📖 故事演绎</h2>
-                    <p class="empty-tip">功能开发中，敬请期待...</p>
+                    <p class="empty-tip">还没有故事，点击"创建故事"开始吧！</p>
+                </div>
+            </section>
+
+            <!-- 对话界面 -->
+            <section id="story-chat-page" class="page-section" style="display: none;">
+                <div class="chat-header">
+                    <button onclick="backToStoryList()" class="btn-small">← 返回列表</button>
+                    <h3 id="chat-story-name"></h3>
+                    <div class="chat-info">
+                        <span id="chat-message-count">0 条消息</span>
+                    </div>
+                </div>
+
+                <div id="chat-messages" class="chat-messages"></div>
+
+                <div class="chat-input-area">
+                    <div class="chat-controls">
+                        <div class="input-group">
+                            <label>发送身份</label>
+                            <div class="custom-select" data-select="message-type">
+                                <div class="custom-select-trigger">
+                                    <span class="custom-select-value">主角</span>
+                                    <svg class="custom-select-arrow" viewBox="0 0 24 24" fill="none" stroke="#f687b3" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                        <polyline points="6 9 12 15 18 9"></polyline>
+                                    </svg>
+                                </div>
+                                <div class="custom-select-options">
+                                    <div class="custom-select-option selected" data-value="主角">主角</div>
+                                    <div class="custom-select-option" data-value="NPC">NPC</div>
+                                    <div class="custom-select-option" data-value="旁白">旁白</div>
+                                </div>
+                                <select id="message-type" style="display: none;">
+                                    <option>主角</option>
+                                    <option>NPC</option>
+                                    <option>旁白</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="input-group" id="npc-select-group" style="display: none;">
+                            <label>选择NPC</label>
+                            <div class="custom-select" data-select="npc-select">
+                                <div class="custom-select-trigger">
+                                    <span class="custom-select-value">选择NPC</span>
+                                    <svg class="custom-select-arrow" viewBox="0 0 24 24" fill="none" stroke="#f687b3" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                        <polyline points="6 9 12 15 18 9"></polyline>
+                                    </svg>
+                                </div>
+                                <div class="custom-select-options" id="npc-options"></div>
+                                <select id="npc-select" style="display: none;"></select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="input-group">
+                        <textarea id="chat-input" placeholder="输入消息..." rows="3"></textarea>
+                    </div>
+
+                    <button onclick="sendMessage()" class="generate-btn">发送</button>
                 </div>
             </section>
 
@@ -725,6 +799,72 @@
         <div id="notification" class="notification"></div>
     </div>
 
+    <!-- 创建故事模态框 -->
+    <div id="create-story-modal" class="modal-overlay" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>创建新故事</h3>
+                <button class="close-btn" onclick="closeCreateStoryModal()">×</button>
+            </div>
+            <div class="modal-body">
+                <form id="create-story-form">
+                    <div class="input-group">
+                        <label>故事名称 *</label>
+                        <input type="text" id="story-name" required placeholder="输入故事名称">
+                    </div>
+
+                    <div class="input-group">
+                        <label>角色数量（≤4）*</label>
+                        <input type="number" id="character-count" min="1" max="4" value="2" required>
+                    </div>
+
+                    <div id="character-sections"></div>
+
+                    <div class="input-group">
+                        <label>故事情节 *</label>
+                        <div class="custom-select" data-select="plot-select">
+                            <div class="custom-select-trigger">
+                                <span class="custom-select-value">选择情节</span>
+                                <svg class="custom-select-arrow" viewBox="0 0 24 24" fill="none" stroke="#f687b3" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                    <polyline points="6 9 12 15 18 9"></polyline>
+                                </svg>
+                            </div>
+                            <div class="custom-select-options" id="plot-options">
+                                <div class="custom-select-option" data-value="auto">🎭 自动生成</div>
+                            </div>
+                            <select id="plot-select" style="display: none;"></select>
+                        </div>
+                    </div>
+
+                    <div class="input-group">
+                        <label>世界观 *</label>
+                        <div class="custom-select" data-select="world-select">
+                            <div class="custom-select-trigger">
+                                <span class="custom-select-value">选择世界观</span>
+                                <svg class="custom-select-arrow" viewBox="0 0 24 24" fill="none" stroke="#f687b3" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                    <polyline points="6 9 12 15 18 9"></polyline>
+                                </svg>
+                            </div>
+                            <div class="custom-select-options" id="world-options">
+                                <div class="custom-select-option" data-value="auto">🌍 自动生成</div>
+                            </div>
+                            <select id="world-select" style="display: none;"></select>
+                        </div>
+                    </div>
+
+                    <div class="info-box">
+                        <h4>💡 提示</h4>
+                        <p>• 角色、情节、世界观可以从历史记录中选择</p>
+                        <p>• 如果没有记录，可以选择"自动生成"</p>
+                        <p>• AI会自动补全或规范化处理选中的内容</p>
+                    </div>
+
+                    <button type="submit" class="generate-btn">创建故事</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
     <script src="js/dropdown.js"></script>
@@ -733,6 +873,7 @@
     <script src="js/tools.js"></script>
     <script src="js/user-system.js"></script>
     <script src="js/model-switcher.js"></script>
+    <script src="js/story.js"></script>
     <script src="js/main.js"></script>
 </body>
 </html>

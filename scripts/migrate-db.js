@@ -21,6 +21,7 @@ const User = require('../models/User');
 const History = require('../models/History');
 const Settings = require('../models/Settings');
 const PublicModel = require('../models/PublicModel');
+const Story = require('../models/Story');
 
 // 配置
 const CONFIG = {
@@ -288,7 +289,8 @@ async function main() {
       'users': User,
       'histories': History,
       'settings': Settings,
-      'publicmodels': PublicModel
+      'publicmodels': PublicModel,
+      'stories': Story
     };
 
     // 1. 检查并创建缺失的集合

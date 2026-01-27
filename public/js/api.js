@@ -121,3 +121,120 @@ async function callAPI(endpoint, data) {
         throw new Error('网络请求失败: ' + error.message);
     }
 }
+
+// ==================== 故事相关API ====================
+
+// 获取故事列表
+async function getStoryList(page = 1, limit = 20) {
+    const token = localStorage.getItem('token');
+    const response = await fetch(`/api/story/list?page=${page}&limit=${limit}`, {
+        headers: {
+            'Authorization': `Bearer ${token}`
+        }
+    });
+    return await response.json();
+}
+
+// 创建故事
+async function createStory(data) {
+    const token = localStorage.getItem('token');
+    const response = await fetch('/api/story/create', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(data)
+    });
+    return await response.json();
+}
+
+// 删除故事
+async function deleteStoryAPI(storyId) {
+    const token = localStorage.getItem('token');
+    const response = await fetch(`/api/story/${storyId}`, {
+        method: 'DELETE',
+        headers: {
+            'Authorization': `Bearer ${token}`
+        }
+    });
+    return await response.json();
+}
+
+// 获取故事详情
+async function getStory(storyId) {
+    const token = localStorage.getItem('token');
+    const response = await fetch(`/api/story/${storyId}`, {
+        headers: {
+            'Authorization': `Bearer ${token}`
+        }
+    });
+    return await response.json();
+}
+
+// 流式发送消息
+async function sendMessageStream(storyId, data, onProgress, onComplete, onError) {
+    const token = localStorage.getItem('token');
+    const modelConfig = getCurrentModel();
+
+    if (modelConfig) {
+        data.modelConfig = modelConfig;
+    }
+
+    const response = await fetch(`/api/story/${storyId}/message`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(data)
+    });
+
+    if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || '请求失败');
+    }
+
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder();
+    let fullContent = '';
+
+    while (true) {
+        const { done, value } = await reader.read();
+
+        if (done) {
+            onComplete(fullContent);
+            break;
+        }
+
+        const chunk = decoder.decode(value, { stream: true });
+        const lines = chunk.split('\n').filter(line => line.trim());
+
+        for (const line of lines) {
+            if (line.startsWith('data: ')) {
+                const dataStr = line.slice(6);
+
+                try {
+                    const parsed = JSON.parse(dataStr);
+
+                    if (parsed.error) {
+                        onError(parsed.error);
+                        return;
+                    }
+
+                    if (parsed.done) {
+                        onComplete(fullContent);
+                        return;
+                    }
+
+                    if (parsed.content) {
+                        fullContent += parsed.content;
+                        onProgress(fullContent);
+                    }
+                } catch (e) {
+                    // 忽略解析错误
+                }
+            }
+        }
+    }
+}

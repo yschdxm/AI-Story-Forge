@@ -430,3 +430,158 @@
     border-color: var(--accent-pink);
     color: var(--accent-pink);
 }
+
+/* ==================== 聊天界面样式 ==================== */
+
+/* 聊天头部 */
+.chat-header {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-lg);
+    margin-bottom: var(--spacing-xl);
+    padding-bottom: var(--spacing-lg);
+    border-bottom: 1px solid var(--glass-border);
+}
+
+.chat-header h3 {
+    color: var(--gold);
+    margin: 0;
+    flex: 1;
+    font-family: var(--font-display);
+    font-size: 1.3em;
+}
+
+.chat-info {
+    font-size: 0.9em;
+    color: var(--text-muted);
+}
+
+/* 消息容器 */
+.chat-messages {
+    height: 400px;
+    overflow-y: auto;
+    padding: var(--spacing-lg);
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: var(--radius-xl);
+    margin-bottom: var(--spacing-xl);
+}
+
+.chat-messages::-webkit-scrollbar {
+    width: 6px;
+}
+
+.chat-messages::-webkit-scrollbar-thumb {
+    background: var(--primary-purple);
+    border-radius: 3px;
+}
+
+.chat-messages::-webkit-scrollbar-thumb:hover {
+    background: var(--accent-pink);
+}
+
+/* 消息样式 */
+.message {
+    margin-bottom: var(--spacing-lg);
+    padding: var(--spacing-md);
+    border-radius: var(--radius-lg);
+    line-height: 1.6;
+    animation: slideIn 0.3s ease;
+}
+
+.message-主角 {
+    background: rgba(72, 187, 120, 0.15);
+    border-left: 3px solid #48bb78;
+    margin-right: 20%;
+}
+
+.message-NPC {
+    background: rgba(246, 135, 179, 0.15);
+    border-left: 3px solid var(--accent-pink);
+    margin-left: 20%;
+}
+
+.message-旁白 {
+    background: rgba(99, 179, 237, 0.15);
+    border-left: 3px solid var(--accent-blue);
+    text-align: center;
+    font-style: italic;
+}
+
+.message-记忆 {
+    background: rgba(251, 191, 36, 0.15);
+    border-left: 3px solid var(--gold);
+    font-style: italic;
+    opacity: 0.8;
+}
+
+.message-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: var(--spacing-sm);
+    font-size: 0.85em;
+    color: var(--text-muted);
+}
+
+.message-role {
+    font-weight: 600;
+    color: var(--gold);
+}
+
+.message-time {
+    font-family: var(--font-mono);
+}
+
+.message-content {
+    color: var(--text-light);
+    white-space: pre-wrap;
+}
+
+/* 输入区域 */
+.chat-input-area {
+    background: var(--glass-bg);
+    padding: var(--spacing-xl);
+    border-radius: var(--radius-xl);
+    border: 1px solid var(--glass-border);
+}
+
+.chat-controls {
+    display: flex;
+    gap: var(--spacing-lg);
+    margin-bottom: var(--spacing-lg);
+    flex-wrap: wrap;
+}
+
+.chat-controls .input-group {
+    flex: 1;
+    min-width: 200px;
+}
+
+#chat-input {
+    width: 100%;
+    padding: var(--spacing-md);
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-lg);
+    color: var(--text-light);
+    font-size: 1em;
+    resize: vertical;
+    min-height: 80px;
+    font-family: var(--font-body);
+}
+
+#chat-input:focus {
+    outline: none;
+    border-color: var(--accent-pink);
+}
+
+/* 动画 */
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}

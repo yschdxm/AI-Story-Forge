@@ -354,6 +354,125 @@ input:checked + .slider:before {
     color: #f56565;
 }
 
+/* ==================== 故事演绎组件 ==================== */
+
+/* 故事列表头部 */
+.story-list-header {
+    display: flex;
+    gap: var(--spacing-lg);
+    margin-bottom: var(--spacing-xl);
+    flex-wrap: wrap;
+}
+
+.search-box {
+    flex: 1;
+    min-width: 250px;
+}
+
+.search-box input {
+    width: 100%;
+    padding: var(--spacing-md);
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-lg);
+    color: var(--text-light);
+    font-size: 1em;
+}
+
+.search-box input:focus {
+    outline: none;
+    border-color: var(--accent-pink);
+}
+
+/* 故事卡片列表 */
+.story-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: var(--spacing-lg);
+    margin-top: var(--spacing-xl);
+}
+
+.story-card {
+    background: var(--glass-bg);
+    backdrop-filter: blur(10px);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-xl);
+    padding: var(--spacing-xl);
+    transition: all var(--transition-normal);
+    cursor: pointer;
+}
+
+.story-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.3);
+    border-color: var(--accent-pink);
+}
+
+.story-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: var(--spacing-md);
+}
+
+.story-card-title {
+    font-size: 1.2em;
+    font-weight: 700;
+    color: var(--gold);
+    font-family: var(--font-display);
+}
+
+.story-card-info {
+    font-size: 0.85em;
+    color: var(--text-muted);
+    margin-bottom: var(--spacing-md);
+}
+
+.story-card-preview {
+    font-size: 0.9em;
+    color: var(--text-light);
+    line-height: 1.5;
+    margin-bottom: var(--spacing-md);
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.story-card-actions {
+    display: flex;
+    gap: var(--spacing-sm);
+    justify-content: flex-end;
+}
+
+.btn-enter {
+    background: rgba(72, 187, 120, 0.2);
+    color: #48bb78;
+    border: 1px solid #48bb78;
+}
+
+.btn-enter:hover {
+    background: #48bb78;
+    color: white;
+}
+
+/* 主按钮 */
+.btn-primary {
+    padding: var(--spacing-md) var(--spacing-xl);
+    background: linear-gradient(135deg, var(--primary-purple), var(--accent-pink));
+    border: none;
+    border-radius: var(--radius-lg);
+    color: white;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all var(--transition-normal);
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(246, 135, 179, 0.4);
+}
+
 /* 响应式调整 */
 @media (max-width: 768px) {
     .setting-item {
@@ -365,5 +484,13 @@ input:checked + .slider:before {
     .setting-control {
         width: 100%;
         justify-content: space-between;
+    }
+
+    .story-list-header {
+        flex-direction: column;
+    }
+
+    .search-box {
+        width: 100%;
     }
 }

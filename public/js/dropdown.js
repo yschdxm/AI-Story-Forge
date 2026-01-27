@@ -41,6 +41,8 @@ function initSingleCustomSelect(selectContainer) {
             const value = this.getAttribute('data-value');
             const text = this.textContent;
 
+            console.log(`[dropdown] 点击选项: ${text}, data-value=${value}, nativeSelect=${nativeSelect ? nativeSelect.id : 'null'}`);
+
             // 更新显示值
             valueDisplay.textContent = text;
 
@@ -53,6 +55,9 @@ function initSingleCustomSelect(selectContainer) {
                 nativeSelect.value = value;
                 // 触发change事件
                 nativeSelect.dispatchEvent(new Event('change', { bubbles: true }));
+                console.log(`[dropdown] 更新 ${nativeSelect.id} = ${value}, 实际值=${nativeSelect.value}`);
+            } else {
+                console.log(`[dropdown] 未找到 nativeSelect for ${selectContainer.dataset.select}`);
             }
 
             // 关闭下拉菜单
@@ -143,5 +148,11 @@ function createCustomSelect(selectId, options, defaultValue, placeholder = '请�
 // 获取自定义下拉菜单的值（供API调用使用）
 function getCustomSelectValue(selectId) {
     const nativeSelect = document.getElementById(selectId);
-    return nativeSelect ? nativeSelect.value : null;
+    if (!nativeSelect) {
+        console.log(`[dropdown] 未找到 select 元素: ${selectId}`);
+        return null;
+    }
+    const value = nativeSelect.value;
+    console.log(`[dropdown] 获取 ${selectId} = ${value}`);
+    return value;
 }
