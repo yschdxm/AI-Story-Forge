@@ -2,14 +2,39 @@
 // 作者: AI Story Forge
 // 版本: 3.1
 
-// 工具标签切换
+// 主导航切换
 document.addEventListener('DOMContentLoaded', function() {
+    const navButtons = document.querySelectorAll('.nav-btn');
+    const pageSections = document.querySelectorAll('.page-section');
     const tabButtons = document.querySelectorAll('.tab-btn');
     const toolSections = document.querySelectorAll('.tool-section');
 
-    // 恢复上次使用的模块
-    restoreLastActiveTab(tabButtons, toolSections);
+    // 恢复上次使用的页面和模块
+    restoreLastActivePage(navButtons, pageSections, tabButtons, toolSections);
 
+    // 主导航切换事件
+    navButtons.forEach(btn => {
+        btn.addEventListener('click', function() {
+            const targetPage = this.getAttribute('data-page');
+
+            // 更新导航按钮状态
+            navButtons.forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+
+            // 切换页面内容
+            pageSections.forEach(section => {
+                section.classList.remove('active');
+                if (section.id === `${targetPage}-page`) {
+                    section.classList.add('active');
+                }
+            });
+
+            // 保存当前选中的页面到 localStorage
+            localStorage.setItem('lastActivePage', targetPage);
+        });
+    });
+
+    // 工具标签切换事件
     tabButtons.forEach(btn => {
         btn.addEventListener('click', function() {
             const targetTool = this.getAttribute('data-tool');
@@ -71,8 +96,29 @@ document.addEventListener('DOMContentLoaded', function() {
     initCustomSelects();
 });
 
-// 恢复上次使用的模块
-function restoreLastActiveTab(tabButtons, toolSections) {
+// 恢复上次使用的页面和模块
+function restoreLastActivePage(navButtons, pageSections, tabButtons, toolSections) {
+    // 从 localStorage 获取上次选中的页面
+    const lastActivePage = localStorage.getItem('lastActivePage');
+
+    if (lastActivePage) {
+        // 查找对应的导航按钮和页面区域
+        const targetNavButton = document.querySelector(`[data-page="${lastActivePage}"]`);
+        const targetPageSection = document.getElementById(`${lastActivePage}-page`);
+
+        if (targetNavButton && targetPageSection) {
+            // 更新导航按钮状态
+            navButtons.forEach(b => b.classList.remove('active'));
+            targetNavButton.classList.add('active');
+
+            // 切换页面内容
+            pageSections.forEach(section => {
+                section.classList.remove('active');
+            });
+            targetPageSection.classList.add('active');
+        }
+    }
+
     // 从 localStorage 获取上次选中的模块
     const lastActiveTab = localStorage.getItem('lastActiveTab');
 
@@ -116,8 +162,9 @@ function restoreLastActiveTab(tabButtons, toolSections) {
         }
     }
 
-    // 如果没有保存的模块或恢复失败，默认使用角色生成器（第一个模块）
-    // 这是默认行为，不需要额外操作
+    // 如果没有保存的页面或模块，使用默认值
+    // 默认页面：故事演绎（story演绎）
+    // 默认模块：角色生成器（第一个模块）
 }
 
 // 为历史记录筛选下拉菜单添加自动筛选功能

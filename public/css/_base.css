@@ -8,6 +8,72 @@ body {
     overflow-x: hidden;
 }
 
+/* ==================== 主导航栏 ==================== */
+
+.main-nav {
+    display: flex;
+    gap: var(--spacing-sm);
+    margin-bottom: var(--spacing-xl);
+    justify-content: center;
+    position: relative;
+    z-index: calc(var(--z-base) - 1);
+}
+
+.nav-btn {
+    flex: 1;
+    padding: var(--spacing-sm) var(--spacing-lg);
+    background: var(--glass-bg);
+    border: 2px solid var(--glass-border);
+    border-radius: var(--radius-lg);
+    color: var(--text-light);
+    cursor: pointer;
+    font-size: 1em;
+    font-family: var(--font-serif);
+    transition: all var(--transition-normal);
+    backdrop-filter: blur(10px);
+    white-space: nowrap;
+}
+
+.nav-btn:hover {
+    transform: translateY(-1px);
+    border-color: var(--accent-blue);
+    box-shadow: var(--shadow-sm);
+}
+
+.nav-btn.active {
+    background: linear-gradient(135deg, var(--primary-purple), var(--accent-pink));
+    border-color: var(--gold);
+    box-shadow: 0 2px 12px rgba(246, 135, 179, 0.3);
+}
+
+/* ==================== 页面容器 ==================== */
+
+.page-section {
+    display: none;
+}
+
+.page-section.active {
+    display: block;
+}
+
+/* 空页面样式 */
+.empty-page {
+    text-align: center;
+    padding: var(--spacing-4xl) var(--spacing-2xl);
+    background: var(--glass-bg);
+    backdrop-filter: blur(20px);
+    border-radius: var(--radius-2xl);
+    border: 1px solid var(--glass-border);
+    box-shadow: var(--shadow-md);
+}
+
+.empty-page h2 {
+    font-family: var(--font-display);
+    color: var(--gold);
+    font-size: 2.5em;
+    margin-bottom: var(--spacing-xl);
+}
+
 /* 粒子背景容器 */
 #particles-js {
     position: fixed;
@@ -125,10 +191,26 @@ body {
     text-align: center;
 }
 
-/* 响应式设计 */
+/* ==================== 页面内容区域 ==================== */
+
+.tool-content {
+    position: relative;
+}
+
+/* ==================== 响应式设计 ==================== */
+
 @media (max-width: 768px) {
     .app-header h1 {
         font-size: 2em;
+    }
+
+    .main-nav {
+        flex-direction: row;
+    }
+
+    .nav-btn {
+        padding: var(--spacing-sm) var(--spacing-md);
+        font-size: 0.95em;
     }
 
     .tool-tabs {
@@ -145,5 +227,13 @@ body {
 
     .container {
         padding: var(--spacing-lg);
+    }
+
+    .empty-page {
+        padding: var(--spacing-2xl) var(--spacing-lg);
+    }
+
+    .empty-page h2 {
+        font-size: 1.8em;
     }
 }
