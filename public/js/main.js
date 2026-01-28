@@ -29,6 +29,14 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             });
 
+            // 如果切换到非故事演绎页面，清空故事列表和对话界面
+            if (targetPage !== 'story演绎') {
+                const storyList = document.getElementById('story-list');
+                const storyChatPage = document.getElementById('story-chat-page');
+                if (storyList) storyList.innerHTML = '';
+                if (storyChatPage) storyChatPage.style.display = 'none';
+            }
+
             // 保存当前选中的页面到 localStorage
             localStorage.setItem('lastActivePage', targetPage);
         });
