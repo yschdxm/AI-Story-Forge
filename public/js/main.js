@@ -45,43 +45,69 @@ document.addEventListener('DOMContentLoaded', function() {
     // 工具标签切换事件
     tabButtons.forEach(btn => {
         btn.addEventListener('click', function() {
-            const targetTool = this.getAttribute('data-tool');
+            switchTool(this.getAttribute('data-tool'));
+        });
+    });
 
-            // 更新按钮状态
-            tabButtons.forEach(b => b.classList.remove('active'));
-            this.classList.add('active');
+    // 移动端下拉菜单切换事件
+    const toolSelect = document.getElementById('tool-select');
+    if (toolSelect) {
+        toolSelect.addEventListener('change', function() {
+            switchTool(this.value);
+        });
+    }
 
-            // 切换内容区域
-            toolSections.forEach(section => {
-                section.classList.remove('active');
-                if (section.id === `${targetTool}-tool`) {
-                    section.classList.add('active');
-                }
-            });
+    // 工具切换函数
+    function switchTool(targetTool) {
+        // 更新按钮状态
+        tabButtons.forEach(b => b.classList.remove('active'));
+        const activeBtn = document.querySelector(`.tab-btn[data-tool="${targetTool}"]`);
+        if (activeBtn) {
+            activeBtn.classList.add('active');
+        }
 
-            // 保存当前选中的模块到 localStorage
-            localStorage.setItem('lastActiveTab', targetTool);
-
-            // 如果是历史记录标签，自动加载历史记录
-            if (targetTool === 'history') {
-                // 检查用户是否登录
-                const token = localStorage.getItem('token');
-                if (!token) {
-                    showNotification('请先登录以查看历史记录', 'error');
-                    // 延迟跳转到登录页面
-                    setTimeout(() => {
-                        window.location.href = 'login.html';
-                    }, 1500);
-                    return;
-                }
-                // 延迟加载，确保界面切换完成
-                setTimeout(() => {
-                    loadHistory();
-                }, 100);
+        // 更新下拉菜单显示
+        const toolSelectValue = document.getElementById('tool-select');
+        const toolSelectTrigger = document.querySelector('.tool-tabs-dropdown .custom-select-value');
+        if (toolSelectValue && toolSelectTrigger) {
+            toolSelectValue.value = targetTool;
+            const selectedOption = document.querySelector(`.custom-select-option[data-value="${targetTool}"]`);
+            if (selectedOption) {
+                toolSelectTrigger.textContent = selectedOption.textContent;
             }
+        }
 
-            // 如果是收藏夹标签，自动加载收藏夹
-            if (targetTool === 'favorites') {
+        // 切换内容区域
+        toolSections.forEach(section => {
+            section.classList.remove('active');
+            if (section.id === `${targetTool}-tool`) {
+                section.classList.add('active');
+            }
+        });
+
+        // 保存当前选中的模块到 localStorage
+        localStorage.setItem('lastActiveTab', targetTool);
+
+        // 如果是历史记录标签，自动加载历史记录
+        if (targetTool === 'history') {
+            // 检查用户是否登录
+            const token = localStorage.getItem('token');
+            if (!token) {
+                showNotification('请先登录以查看历史记录', 'error');
+                // 延迟跳转到登录页面
+                setTimeout(() => {
+                    window.location.href = 'login.html';
+                }, 1500);
+                return;
+            }
+            // 延迟加载，确保界面切换完成
+            setTimeout(() => {
+                loadHistory();
+            }, 100);
+        }
+
+        // 如果是收藏夹标签，自动加载收藏夹
+        if (targetTool === 'favorites') {
                 // 检查用户是否登录
                 const token = localStorage.getItem('token');
                 if (!token) {
@@ -97,8 +123,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     loadFavorites();
                 }, 100);
             }
-        });
-    });
+        }
 
     // 初始化自定义下拉菜单
     initCustomSelects();
@@ -149,6 +174,15 @@ function restoreLastActivePage(navButtons, pageSections, tabButtons, toolSection
             // 更新按钮状态
             tabButtons.forEach(b => b.classList.remove('active'));
             targetButton.classList.add('active');
+
+            // 更新下拉菜单显示
+            const toolSelectTrigger = document.querySelector('.tool-tabs-dropdown .custom-select-value');
+            if (toolSelectTrigger) {
+                const selectedOption = document.querySelector(`.custom-select-option[data-value="${lastActiveTab}"]`);
+                if (selectedOption) {
+                    toolSelectTrigger.textContent = selectedOption.textContent;
+                }
+            }
 
             // 切换内容区域
             toolSections.forEach(section => {

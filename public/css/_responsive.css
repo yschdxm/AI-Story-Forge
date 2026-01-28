@@ -25,12 +25,71 @@
         gap: var(--spacing-md);
     }
 
+    /* 工具标签页 - 移动端下拉菜单 */
     .tool-tabs {
         flex-direction: column;
+        position: relative;
+        z-index: 10000; /* 确保下拉菜单在工具内容之上 */
     }
 
-    .tab-btn {
+    /* 隐藏桌面端按钮 */
+    .tool-tabs-buttons {
+        display: none !important;
+    }
+
+    /* 显示移动端下拉菜单 */
+    .tool-tabs-dropdown {
+        display: block !important;
         width: 100%;
+        position: relative;
+        z-index: 10001;
+    }
+
+    .tool-tabs-dropdown .custom-select {
+        width: 100%;
+        position: relative;
+    }
+
+    .tool-tabs-dropdown .custom-select-trigger {
+        width: 100%;
+        justify-content: space-between;
+        background: var(--glass-bg);
+        border: 2px solid var(--glass-border);
+        border-radius: var(--radius-xl);
+        backdrop-filter: blur(10px);
+    }
+
+    .tool-tabs-dropdown .custom-select-options {
+        width: 100%;
+        max-height: 400px;
+        background: var(--glass-bg);
+        border: 2px solid var(--glass-border);
+        border-radius: var(--radius-xl);
+        backdrop-filter: blur(20px);
+        position: absolute;
+        top: 100%;
+        left: 0;
+        margin-top: 8px;
+        z-index: 10002;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+    }
+
+    .tool-tabs-dropdown .custom-select-option {
+        padding: var(--spacing-lg);
+        border-bottom: 1px solid var(--glass-border);
+        transition: all var(--transition-normal);
+    }
+
+    .tool-tabs-dropdown .custom-select-option:hover,
+    .tool-tabs-dropdown .custom-select-option.selected {
+        background: linear-gradient(135deg, var(--primary-purple), var(--accent-pink));
+        color: white;
+    }
+
+    /* 工具内容区域在移动端降低层级 */
+    .tool-section {
+        position: relative;
+        z-index: 1;
     }
 
     .tool-section {
@@ -129,6 +188,15 @@
         width: 100%;
     }
 
+    /* 模型选择器选项列表在移动端占满宽度 */
+    #model-select-container .custom-select-options {
+        left: 0;
+        right: 0;
+        min-width: auto;
+        max-width: none;
+        width: 100%;
+    }
+
     /* 故事演绎页面按钮 */
     .story-list-header {
         flex-direction: column;
@@ -154,5 +222,29 @@
 
     .search-box input {
         width: 100%;
+    }
+}
+
+/* ==================== 桌面端样式恢复 ==================== */
+/* 宽屏下（>768px）恢复工具标签页的桌面端显示 */
+@media (min-width: 769px) {
+    /* 显示桌面端按钮 */
+    .tool-tabs-buttons {
+        display: flex !important;
+        flex-wrap: wrap;
+        gap: var(--spacing-md);
+        justify-content: center;
+        width: 100%;
+    }
+
+    /* 隐藏移动端下拉菜单 */
+    .tool-tabs-dropdown {
+        display: none !important;
+    }
+
+    /* 恢复 tool-tabs 的默认样式 */
+    .tool-tabs {
+        flex-direction: row;
+        z-index: calc(var(--z-base) - 1);
     }
 }
