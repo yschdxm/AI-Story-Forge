@@ -473,6 +473,31 @@ input:checked + .slider:before {
     padding: var(--spacing-xl);
     transition: all var(--transition-normal);
     cursor: pointer;
+    opacity: 0;
+    animation: slideUp var(--transition-normal) forwards;
+}
+
+/* 为每个故事卡片添加延迟动画，形成依次出现的效果 */
+.story-card:nth-child(1) { animation-delay: 0.05s; }
+.story-card:nth-child(2) { animation-delay: 0.1s; }
+.story-card:nth-child(3) { animation-delay: 0.15s; }
+.story-card:nth-child(4) { animation-delay: 0.2s; }
+.story-card:nth-child(5) { animation-delay: 0.25s; }
+.story-card:nth-child(6) { animation-delay: 0.3s; }
+.story-card:nth-child(7) { animation-delay: 0.35s; }
+.story-card:nth-child(8) { animation-delay: 0.4s; }
+.story-card:nth-child(9) { animation-delay: 0.45s; }
+.story-card:nth-child(10) { animation-delay: 0.5s; }
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 .story-card:hover {

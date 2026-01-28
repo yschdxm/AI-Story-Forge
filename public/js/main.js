@@ -31,10 +31,28 @@ document.addEventListener('DOMContentLoaded', function() {
 
             // 如果切换到非故事演绎页面，清空故事列表和对话界面
             if (targetPage !== 'story演绎') {
-                const storyList = document.getElementById('story-list');
                 const storyChatPage = document.getElementById('story-chat-page');
-                if (storyList) storyList.innerHTML = '';
                 if (storyChatPage) storyChatPage.style.display = 'none';
+            }
+
+            // 如果切换到故事演绎页面，重新加载故事列表（不显示加载状态）
+            if (targetPage === 'story演绎') {
+                const token = localStorage.getItem('token');
+                if (token && typeof loadStoryList === 'function') {
+                    // 先清空列表，避免旧内容残留
+                    const storyList = document.getElementById('story-list');
+                    if (storyList) {
+                        storyList.innerHTML = '';
+                    }
+
+                    setTimeout(() => {
+                        loadStoryList(false);
+                        // 页面切换时手动触发动画
+                        if (storyList) {
+                            storyList.style.animation = 'fadeIn var(--transition-slow)';
+                        }
+                    }, 100);
+                }
             }
 
             // 保存当前选中的页面到 localStorage

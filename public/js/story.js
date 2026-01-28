@@ -9,8 +9,9 @@ let currentStoryData = null;  // 当前故事数据
 
 /**
  * 加载故事列表
+ * @param {boolean} showLoadingIndicator - 是否显示加载状态（默认 true）
  */
-async function loadStoryList() {
+async function loadStoryList(showLoadingIndicator = true) {
   const token = localStorage.getItem('token');
   if (!token) {
     showNotification('请先登录', 'error');
@@ -18,7 +19,9 @@ async function loadStoryList() {
     return;
   }
 
-  showLoading(true, 'ai-creating');
+  if (showLoadingIndicator) {
+    showLoading(true, 'ai-creating');
+  }
 
   try {
     const response = await fetch('/api/story/list', {
@@ -35,7 +38,9 @@ async function loadStoryList() {
       throw new Error(result.error);
     }
 
-    hideLoading();
+    if (showLoadingIndicator) {
+      hideLoading();
+    }
 
     const stories = result.stories || [];
     const listContainer = document.getElementById('story-list');
@@ -50,10 +55,13 @@ async function loadStoryList() {
     }
 
     emptyContainer.style.display = 'none';
-    renderStoryList(stories);
+    // 只有首次加载（显示加载状态）时才播放动画
+    renderStoryList(stories, showLoadingIndicator);
 
   } catch (error) {
-    hideLoading();
+    if (showLoadingIndicator) {
+      hideLoading();
+    }
     console.error('[story] 加载失败:', error);
     showNotification('加载失败: ' + error.message, 'error');
   }
@@ -61,8 +69,10 @@ async function loadStoryList() {
 
 /**
  * 渲染故事列表
+ * @param {Array} stories - 故事列表
+ * @param {boolean} animate - 是否播放动画（默认 false，不播放）
  */
-function renderStoryList(stories) {
+function renderStoryList(stories, animate = false) {
   const container = document.getElementById('story-list');
 
   const html = stories.map(story => {
@@ -100,7 +110,11 @@ function renderStoryList(stories) {
     `;
   }).join('');
 
+  // 禁用动画后更新（避免刷新时重复播放动画）
+  container.style.animation = 'none';
   container.innerHTML = html;
+  container.offsetHeight; // 强制重绘
+  container.style.animation = '';
 }
 
 /**
@@ -586,6 +600,16 @@ async function enterStory(storyId) {
  * 返回故事列表
  */
 function backToStoryList() {
+  // 停止记忆压缩轮询
+  if (memoryPollingInterval) {
+    clearInterval(memoryPollingInterval);
+    memoryPollingInterval = null;
+  }
+  if (memoryPollingTimeout) {
+    clearTimeout(memoryPollingTimeout);
+    memoryPollingTimeout = null;
+  }
+
   currentStoryId = null;
   currentStoryData = null;
 
@@ -871,6 +895,11 @@ let memoryPollingInterval = null;
 let memoryPollingTimeout = null;
 
 function startMemoryCompressionPolling() {
+  // 如果没有当前故事ID，不启动轮询
+  if (!currentStoryId) {
+    return;
+  }
+
   // 清除之前的轮询
   if (memoryPollingInterval) {
     clearInterval(memoryPollingInterval);
@@ -885,6 +914,12 @@ function startMemoryCompressionPolling() {
   const maxChecks = 15; // 最多检查15次（15秒）
 
   memoryPollingInterval = setInterval(async () => {
+    // 检查是否已经退出故事页面
+    if (!currentStoryId) {
+      clearInterval(memoryPollingInterval);
+      return;
+    }
+
     checkCount++;
 
     if (checkCount > maxChecks) {
