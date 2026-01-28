@@ -27,12 +27,18 @@ const storySchema = new mongoose.Schema({
     historyId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'History',
-      required: true
+      required: false  // 改为可选，支持AI临时创建的角色
     },
     name: String,
     archetype: String,
     setting: String,
-    traits: String
+    traits: [String],  // 数组类型
+    appearance: String,
+    personality: String,
+    backstory: String,
+    motivation: String,
+    abilities: [String],
+    roleInStory: String
   }],
 
   // 情节配置
@@ -40,11 +46,23 @@ const storySchema = new mongoose.Schema({
     historyId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'History',
-      required: true
+      required: false  // 支持AI自动生成
     },
-    keywords: String,
+    title: String,
+    summary: String,
+    keywords: [String],  // 数组类型
     genre: String,
-    complexity: String
+    complexity: String,
+    acts: [{
+      _id: false,
+      actNumber: Number,
+      title: String,
+      description: String,
+      keyEvents: [String]
+    }],
+    climax: String,
+    resolution: String,
+    themes: [String]
   },
 
   // 世界观配置
@@ -52,12 +70,29 @@ const storySchema = new mongoose.Schema({
     historyId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'History',
-      required: true
+      required: false  // 支持AI自动生成
     },
+    worldName: String,
     era: String,
     technology: String,
-    magicSystem: String,
-    culture: String
+    magicSystem: {
+      _id: false,
+      name: String,
+      rules: [String],
+      limitations: [String],
+      source: String
+    },
+    culture: String,
+    geography: String,
+    politics: String,
+    economy: String,
+    religions: [String],
+    notableLocations: [{
+      _id: false,
+      name: String,
+      description: String
+    }],
+    uniqueFeatures: [String]
   },
 
   // 对话历史
@@ -69,6 +104,7 @@ const storySchema = new mongoose.Schema({
       required: true
     },
     characterId: Number,  // characters数组索引
+    characterName: String,  // AI临时创建的角色名称
     content: {
       type: String,
       required: true
@@ -108,7 +144,8 @@ const storySchema = new mongoose.Schema({
   // 元数据
   metadata: {
     lastMessageAt: Date,
-    totalMessages: Number
+    totalMessages: Number,
+    openingGenerating: Boolean  // 开场是否正在生成
   }
 }, {
   timestamps: true

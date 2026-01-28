@@ -116,6 +116,16 @@ function restoreLastActivePage(navButtons, pageSections, tabButtons, toolSection
                 section.classList.remove('active');
             });
             targetPageSection.classList.add('active');
+
+            // 如果是故事演绎页面，加载故事列表
+            if (lastActivePage === 'story演绎') {
+                const token = localStorage.getItem('token');
+                if (token) {
+                    setTimeout(() => {
+                        loadStoryList();
+                    }, 100);
+                }
+            }
         }
     }
 

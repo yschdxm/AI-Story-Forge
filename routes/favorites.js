@@ -34,6 +34,7 @@ router.get('/list', authenticateToken, async (req, res) => {
         toolType: f.toolType,
         content: f.content,
         inputParams: f.inputParams,
+        structuredData: f.structuredData,
         tags: f.tags,
         createdAt: f.createdAt
       })),
@@ -70,6 +71,7 @@ router.get('/:id', authenticateToken, async (req, res) => {
         toolType: favorite.toolType,
         content: favorite.content,
         inputParams: favorite.inputParams,
+        structuredData: favorite.structuredData,
         tags: favorite.tags,
         metadata: favorite.metadata,
         createdAt: favorite.createdAt

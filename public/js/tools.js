@@ -575,6 +575,176 @@ ${finalContent}
 }
 
 // 9. 历史记录（非流式）
+
+/**
+ * 根据结构化数据生成预览文本
+ */
+function generateStructuredPreview(item) {
+    const data = item.structuredData;
+    if (!data) return null;
+
+    const toolType = item.toolType;
+    const toolData = data[toolType];
+
+    if (!toolData) return null;
+
+    switch (toolType) {
+        case 'character':
+            return `🎭 ${toolData.name || '未命名'} | ${toolData.archetype || '未知原型'} | ${toolData.setting || '未知背景'}`;
+
+        case 'plot':
+            const keywords = toolData.keywords?.join(', ') || '无关键词';
+            return `📖 ${toolData.title || '未命名情节'} | ${toolData.genre || '未知类型'} | ${keywords}`;
+
+        case 'world':
+            return `🌍 ${toolData.worldName || '未命名世界'} | ${toolData.era || '未知时代'} | ${toolData.culture || '未知文化'}`;
+
+        case 'visual':
+            return `🎨 ${toolData.sceneName || '未命名场景'} | ${toolData.artStyle || '未知风格'} | ${toolData.atmosphere || '未知氛围'}`;
+
+        case 'style':
+            return `🎭 ${toolData.targetStyle || '未知风格'} | ${toolData.tone || '未知语调'}`;
+
+        case 'cowrite':
+            return `✍️ ${toolData.storyTitle || '未命名故事'} | ${toolData.tone || '未知基调'} | ${toolData.continueWithType || '未知类型'}`;
+
+        case 'puzzle':
+            return `🧩 ${toolData.puzzleName || '未命名谜题'} | ${toolData.puzzleType || '未知类型'} | ${toolData.difficulty || '未知难度'}`;
+
+        case 'names':
+            const nameCount = toolData.names?.length || 0;
+            return `🌟 ${toolData.culture || '未知文化'} | ${toolData.gender || '未知性别'} | ${nameCount}个名字`;
+
+        default:
+            return null;
+    }
+}
+
+/**
+ * 根据结构化数据生成详情HTML
+ */
+function generateStructuredDetail(item) {
+    const data = item.structuredData;
+    if (!data) return '';
+
+    const toolType = item.toolType;
+    const toolData = data[toolType];
+
+    if (!toolData) return '';
+
+    let html = '<div class="history-detail-content">';
+
+    switch (toolType) {
+        case 'character':
+            html += `
+                <h4>🎭 角色信息</h4>
+                <div class="info-row"><span>名称</span><span>${toolData.name || '未命名'}</span></div>
+                <div class="info-row"><span>原型</span><span>${toolData.archetype || '未知'}</span></div>
+                <div class="info-row"><span>背景</span><span>${toolData.setting || '未知'}</span></div>
+                <div class="info-row"><span>特质</span><span>${toolData.traits?.join(', ') || '未知'}</span></div>
+                ${toolData.appearance ? `<div class="info-row"><span>外貌</span><span>${toolData.appearance}</span></div>` : ''}
+                ${toolData.personality ? `<div class="info-row"><span>性格</span><span>${toolData.personality}</span></div>` : ''}
+                ${toolData.backstory ? `<div class="info-row"><span>背景故事</span><span>${toolData.backstory}</span></div>` : ''}
+                ${toolData.motivation ? `<div class="info-row"><span>动机</span><span>${toolData.motivation}</span></div>` : ''}
+                ${toolData.abilities?.length ? `<div class="info-row"><span>能力</span><span>${toolData.abilities.join(', ')}</span></div>` : ''}
+            `;
+            break;
+
+        case 'plot':
+            html += `
+                <h4>📖 情节信息</h4>
+                <div class="info-row"><span>标题</span><span>${toolData.title || '未命名'}</span></div>
+                <div class="info-row"><span>概要</span><span>${toolData.summary || '无'}</span></div>
+                <div class="info-row"><span>类型</span><span>${toolData.genre || '未知'}</span></div>
+                <div class="info-row"><span>复杂度</span><span>${toolData.complexity || '未知'}</span></div>
+                ${toolData.keywords?.length ? `<div class="info-row"><span>关键词</span><span>${toolData.keywords.join(', ')}</span></div>` : ''}
+                ${toolData.climax ? `<div class="info-row"><span>高潮</span><span>${toolData.climax}</span></div>` : ''}
+                ${toolData.resolution ? `<div class="info-row"><span>结局</span><span>${toolData.resolution}</span></div>` : ''}
+                ${toolData.themes?.length ? `<div class="info-row"><span>主题</span><span>${toolData.themes.join(', ')}</span></div>` : ''}
+            `;
+            break;
+
+        case 'world':
+            html += `
+                <h4>🌍 世界信息</h4>
+                <div class="info-row"><span>名称</span><span>${toolData.worldName || '未命名'}</span></div>
+                <div class="info-row"><span>时代</span><span>${toolData.era || '未知'}</span></div>
+                <div class="info-row"><span>科技</span><span>${toolData.technology || '未知'}</span></div>
+                <div class="info-row"><span>文化</span><span>${toolData.culture || '未知'}</span></div>
+                ${toolData.magicSystem?.name ? `<div class="info-row"><span>魔法体系</span><span>${toolData.magicSystem.name}</span></div>` : ''}
+                ${toolData.geography ? `<div class="info-row"><span>地理</span><span>${toolData.geography}</span></div>` : ''}
+                ${toolData.politics ? `<div class="info-row"><span>政治</span><span>${toolData.politics}</span></div>` : ''}
+                ${toolData.religions?.length ? `<div class="info-row"><span>宗教</span><span>${toolData.religions.join(', ')}</span></div>` : ''}
+            `;
+            break;
+
+        case 'visual':
+            html += `
+                <h4>🎨 场景信息</h4>
+                <div class="info-row"><span>名称</span><span>${toolData.sceneName || '未命名'}</span></div>
+                <div class="info-row"><span>地点</span><span>${toolData.location || '未知'}</span></div>
+                <div class="info-row"><span>时间</span><span>${toolData.time || '未知'}</span></div>
+                <div class="info-row"><span>氛围</span><span>${toolData.atmosphere || '未知'}</span></div>
+                <div class="info-row"><span>风格</span><span>${toolData.artStyle || '未知'}</span></div>
+                <div class="info-row"><span>光照</span><span>${toolData.lighting || '未知'}</span></div>
+                ${toolData.colors?.length ? `<div class="info-row"><span>色彩</span><span>${toolData.colors.join(', ')}</span></div>` : ''}
+                ${toolData.mood ? `<div class="info-row"><span>情绪</span><span>${toolData.mood}</span></div>` : ''}
+            `;
+            break;
+
+        case 'style':
+            html += `
+                <h4>🎭 风格信息</h4>
+                <div class="info-row"><span>目标风格</span><span>${toolData.targetStyle || '未知'}</span></div>
+                <div class="info-row"><span>语调</span><span>${toolData.tone || '未知'}</span></div>
+                ${toolData.vocabulary?.length ? `<div class="info-row"><span>特色词汇</span><span>${toolData.vocabulary.join(', ')}</span></div>` : ''}
+                ${toolData.sentenceStructure ? `<div class="info-row"><span>句子结构</span><span>${toolData.sentenceStructure}</span></div>` : ''}
+            `;
+            break;
+
+        case 'cowrite':
+            html += `
+                <h4>✍️ 续写信息</h4>
+                <div class="info-row"><span>故事标题</span><span>${toolData.storyTitle || '未命名'}</span></div>
+                <div class="info-row"><span>基调</span><span>${toolData.tone || '未知'}</span></div>
+                <div class="info-row"><span>类型</span><span>${toolData.continueWithType || '未知'}</span></div>
+                ${toolData.plotDevelopment ? `<div class="info-row"><span>情节发展</span><span>${toolData.plotDevelopment}</span></div>` : ''}
+                ${toolData.themes?.length ? `<div class="info-row"><span>主题</span><span>${toolData.themes.join(', ')}</span></div>` : ''}
+            `;
+            break;
+
+        case 'puzzle':
+            html += `
+                <h4>🧩 谜题信息</h4>
+                <div class="info-row"><span>名称</span><span>${toolData.puzzleName || '未命名'}</span></div>
+                <div class="info-row"><span>类型</span><span>${toolData.puzzleType || '未知'}</span></div>
+                <div class="info-row"><span>难度</span><span>${toolData.difficulty || '未知'}</span></div>
+                <div class="info-row"><span>主题</span><span>${toolData.theme || '未知'}</span></div>
+                ${toolData.setting ? `<div class="info-row"><span>背景</span><span>${toolData.setting}</span></div>` : ''}
+                ${toolData.solution ? `<div class="info-row"><span>解决方案</span><span>${toolData.solution}</span></div>` : ''}
+                ${toolData.timeLimit ? `<div class="info-row"><span>时间限制</span><span>${toolData.timeLimit}</span></div>` : ''}
+            `;
+            break;
+
+        case 'names':
+            html += `
+                <h4>🌟 名字信息</h4>
+                <div class="info-row"><span>文化</span><span>${toolData.culture || '未知'}</span></div>
+                <div class="info-row"><span>性别</span><span>${toolData.gender || '未知'}</span></div>
+                <div class="info-row"><span>时代</span><span>${toolData.era || '未知'}</span></div>
+                ${toolData.names?.length ? `<div class="info-row"><span>名字列表</span><span>${toolData.names.map(n => n.name).join(', ')}</span></div>` : ''}
+                ${toolData.namingConventions ? `<div class="info-row"><span>命名规则</span><span>${toolData.namingConventions}</span></div>` : ''}
+            `;
+            break;
+    }
+
+    html += '</div>';
+    return html;
+}
+
+/**
+ * 加载历史记录
+ */
 async function loadHistory() {
     const historyType = getCustomSelectValue('history-type');
 
@@ -616,7 +786,10 @@ async function loadHistory() {
         const html = historyData.map(item => {
             const toolName = getToolName(item.toolType);
             const date = new Date(item.createdAt).toLocaleString('zh-CN');
-            const preview = item.content.substring(0, 100) + (item.content.length > 100 ? '...' : '');
+
+            // 优先使用结构化数据生成预览
+            const structuredPreview = generateStructuredPreview(item);
+            const preview = structuredPreview || (item.content.substring(0, 100) + (item.content.length > 100 ? '...' : ''));
 
             return `
 <div class="history-item show" data-id="${item.id}">
@@ -625,7 +798,7 @@ async function loadHistory() {
         <span class="history-date">${date}</span>
     </div>
     <div class="history-content">
-        ${typeof marked !== 'undefined' ? marked.parse(preview) : preview}
+        ${preview}
     </div>
     <div class="history-actions">
         <button onclick="viewHistory('${item.id}')" class="btn-small">查看</button>
@@ -667,6 +840,9 @@ async function viewHistory(id) {
         const toolName = getToolName(item.toolType);
         const date = new Date(item.createdAt).toLocaleString('zh-CN');
 
+        // 生成结构化详情
+        const structuredDetail = generateStructuredDetail(item);
+
         // 显示详情弹窗
         const modal = document.createElement('div');
         modal.className = 'modal-overlay';
@@ -680,10 +856,11 @@ async function viewHistory(id) {
         <div class="history-detail-info">
             <p><strong>创建时间：</strong>${date}</p>
             <p><strong>工具类型：</strong>${toolName}</p>
-            <p><strong>收藏状态：</strong>${item.favorite ? '⭐ 已收藏' : '☆ 未收藏'}</p>
+            <p><strong>收藏状态：</strong>${item.isFavorite ? '⭐ 已收藏' : '☆ 未收藏'}</p>
         </div>
+        ${structuredDetail}
         <div class="history-detail-content">
-            <h4>生成内容：</h4>
+            <h4>完整内容（Markdown）：</h4>
             <div class="result-area show">
                 ${typeof marked !== 'undefined' ? marked.parse(item.content) : item.content}
             </div>
@@ -864,7 +1041,10 @@ async function loadFavorites() {
         const html = favoritesData.map(item => {
             const toolName = getToolName(item.toolType);
             const date = new Date(item.createdAt).toLocaleString('zh-CN');
-            const preview = item.content.substring(0, 100) + (item.content.length > 100 ? '...' : '');
+
+            // 优先使用结构化数据生成预览
+            const structuredPreview = generateStructuredPreview(item);
+            const preview = structuredPreview || (item.content.substring(0, 100) + (item.content.length > 100 ? '...' : ''));
 
             return `
 <div class="history-item show" data-id="${item.id}">
@@ -873,7 +1053,7 @@ async function loadFavorites() {
         <span class="history-date">${date}</span>
     </div>
     <div class="history-content">
-        ${typeof marked !== 'undefined' ? marked.parse(preview) : preview}
+        ${preview}
     </div>
     <div class="history-actions">
         <button onclick="viewFavorite('${item.id}')" class="btn-small">查看</button>
@@ -912,6 +1092,9 @@ async function viewFavorite(id) {
         const toolName = getToolName(item.toolType);
         const date = new Date(item.createdAt).toLocaleString('zh-CN');
 
+        // 生成结构化详情
+        const structuredDetail = generateStructuredDetail(item);
+
         // 显示详情弹窗
         const modal = document.createElement('div');
         modal.className = 'modal-overlay';
@@ -927,8 +1110,9 @@ async function viewFavorite(id) {
             <p><strong>工具类型：</strong>${toolName}</p>
             <p><strong>状态：</strong>⭐ 已收藏</p>
         </div>
+        ${structuredDetail}
         <div class="history-detail-content">
-            <h4>生成内容：</h4>
+            <h4>完整内容（Markdown）：</h4>
             <div class="result-area show">
                 ${typeof marked !== 'undefined' ? marked.parse(item.content) : item.content}
             </div>

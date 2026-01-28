@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 
-// 历史记录模型（为情景演绎功能预留接口）
+// 历史记录模型
 const historySchema = new mongoose.Schema({
   userId: {
     type: mongoose.Schema.Types.ObjectId,
@@ -13,7 +13,7 @@ const historySchema = new mongoose.Schema({
     required: true,
     enum: ['character', 'plot', 'visual', 'style', 'cowrite', 'world', 'puzzle', 'names']
   },
-  // 生成的内容
+  // 生成的内容（Markdown格式）
   content: {
     type: String,
     required: true
@@ -61,56 +61,139 @@ const historySchema = new mongoose.Schema({
     era: String,
     count: Number
   },
-  // 为情景演绎预留的标签字段
-  tags: [{
-    type: String,
-    trim: true
-  }],
-  // 为情景演绎预留的元数据
-  metadata: {
-    // 提取的角色信息（用于情景演绎选择）
-    extractedCharacters: [{
+  // 结构化数据（AI解析生成的内容）
+  structuredData: {
+    // 角色生成器
+    character: {
       name: String,
       archetype: String,
       setting: String,
-      traits: String
-    }],
-    // 提取的情节信息
-    extractedPlots: [{
-      keywords: String,
+      traits: [String],
+      appearance: String,
+      personality: String,
+      backstory: String,
+      motivation: String,
+      abilities: [String],
+      relationships: [{
+        name: String,
+        relationship: String
+      }],
+      roleInStory: String
+    },
+    // 情节编织器
+    plot: {
+      title: String,
+      summary: String,
       genre: String,
-      complexity: String
-    }],
-    // 提取的场景可视化信息
-    extractedVisuals: [{
-      sceneDescription: String,
-      artStyle: String
-    }],
-    // 提取的互动写作信息
-    extractedCowrites: [{
-      storySoFar: String,
+      complexity: String,
+      keywords: [String],
+      acts: [{
+        actNumber: Number,
+        title: String,
+        description: String,
+        keyEvents: [String]
+      }],
+      climax: String,
+      resolution: String,
+      themes: [String]
+    },
+    // 场景可视化
+    visual: {
+      sceneName: String,
+      description: String,
+      location: String,
+      time: String,
+      atmosphere: String,
+      visualElements: [{
+        element: String,
+        description: String
+      }],
+      lighting: String,
+      colors: [String],
+      composition: String,
+      artStyle: String,
+      mood: String
+    },
+    // 风格转换
+    style: {
+      originalText: String,
+      targetStyle: String,
+      transformedText: String,
+      styleElements: [{
+        element: String,
+        description: String
+      }],
       tone: String,
-      continueWithType: String
-    }],
-    // 提取的世界信息
-    extractedWorlds: [{
+      vocabulary: [String],
+      sentenceStructure: String
+    },
+    // 互动写作
+    cowrite: {
+      storyTitle: String,
+      continuation: String,
+      tone: String,
+      continueWithType: String,
+      newCharacters: [{
+        name: String,
+        description: String
+      }],
+      plotDevelopment: String,
+      newLocations: [String],
+      themes: [String]
+    },
+    // 世界构建器
+    world: {
+      worldName: String,
       era: String,
       technology: String,
-      magicSystem: String,
-      culture: String
-    }],
-    // 提取的名字信息
-    extractedNames: [{
-      name: String,
+      magicSystem: {
+        name: String,
+        rules: [String],
+        limitations: [String],
+        source: String
+      },
       culture: String,
-      gender: String
-    }],
-    // 提取的谜题信息
-    extractedPuzzles: [{
+      geography: String,
+      politics: String,
+      economy: String,
+      religions: [String],
+      notableLocations: [{
+        name: String,
+        description: String
+      }],
+      uniqueFeatures: [String]
+    },
+    // 谜题设计器
+    puzzle: {
+      puzzleName: String,
       puzzleType: String,
       difficulty: String,
-      theme: String
-    }]
+      theme: String,
+      setting: String,
+      description: String,
+      clues: [{
+        clue: String,
+        hint: String
+      }],
+      solution: String,
+      redHerrings: [String],
+      timeLimit: String,
+      rewards: [String]
+    },
+    // 名字生成器
+    names: {
+      culture: String,
+      gender: String,
+      era: String,
+      names: [{
+        name: String,
+        meaning: String,
+        pronunciation: String,
+        gender: String
+      }],
+      namingConventions: String,
+      examples: [String]
+    }
   },
   // 是否已收藏（用于情景演绎快速选择）
   isFavorite: {

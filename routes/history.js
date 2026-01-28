@@ -76,6 +76,7 @@ router.get('/list', authenticateToken, async (req, res) => {
         toolType: h.toolType,
         content: h.content,
         inputParams: h.inputParams,
+        structuredData: h.structuredData,
         tags: h.tags,
         isFavorite: h.isFavorite,
         createdAt: h.createdAt
@@ -112,6 +113,7 @@ router.get('/:id', authenticateToken, async (req, res) => {
         toolType: history.toolType,
         content: history.content,
         inputParams: history.inputParams,
+        structuredData: history.structuredData,
         tags: history.tags,
         isFavorite: history.isFavorite,
         metadata: history.metadata,

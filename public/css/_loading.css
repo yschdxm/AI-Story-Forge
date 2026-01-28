@@ -9,10 +9,12 @@
     width: 100%;
     height: 100%;
     background: rgba(15, 6, 23, 0.95);
-    z-index: var(--z-loading);
+    z-index: 999999 !important;
     justify-content: center;
     align-items: center;
     backdrop-filter: blur(5px);
+    /* 创建新的层叠上下文以覆盖模态框 */
+    isolation: isolate;
 }
 
 .loading-overlay.show {

@@ -49,9 +49,9 @@
     /* Z-index 层级 */
     --z-base: 1;
     --z-dropdown: 1000;
-    --z-loading: 1000;
-    --z-notification: 2000;
+    --z-notification: 9999;
     --z-modal: 3000;
+    --z-loading: 9999;  /* 加载状态必须在最顶层，覆盖模态框 */
 
     /* 响应式断点 */
     --breakpoint-mobile: 768px;

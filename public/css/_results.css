@@ -433,14 +433,26 @@
 
 /* ==================== 聊天界面样式 ==================== */
 
+/* 聊天页面容器 - 使用 flex 布局确保固定高度 */
+#story-chat-page {
+    display: none;
+    flex-direction: column;
+    height: calc(100vh - 40px); /* 减去顶栏和导航栏的高度 */
+    min-height: 500px;
+}
+
+#story-chat-page.active {
+    display: flex;
+}
+
 /* 聊天头部 */
 .chat-header {
     display: flex;
     align-items: center;
     gap: var(--spacing-lg);
-    margin-bottom: var(--spacing-xl);
     padding-bottom: var(--spacing-lg);
     border-bottom: 1px solid var(--glass-border);
+    flex-shrink: 0; /* 不压缩 */
 }
 
 .chat-header h3 {
@@ -456,14 +468,15 @@
     color: var(--text-muted);
 }
 
-/* 消息容器 */
+/* 消息容器 - 弹性增长，内部滚动 */
 .chat-messages {
-    height: 400px;
+    flex: 1;
     overflow-y: auto;
     padding: var(--spacing-lg);
     background: rgba(0, 0, 0, 0.2);
     border-radius: var(--radius-xl);
     margin-bottom: var(--spacing-xl);
+    min-height: 100px;
 }
 
 .chat-messages::-webkit-scrollbar {
@@ -489,29 +502,103 @@
 }
 
 .message-主角 {
-    background: rgba(72, 187, 120, 0.15);
-    border-left: 3px solid #48bb78;
-    margin-right: 20%;
+    background: rgba(72, 187, 120, 0.12);
+    border-left: 4px solid #48bb78;
+    margin-right: 15%;
+    padding: var(--spacing-lg);
+    border-radius: var(--radius-lg);
+}
+
+.message-主角 .message-role {
+    color: #48bb78;
 }
 
 .message-NPC {
-    background: rgba(246, 135, 179, 0.15);
-    border-left: 3px solid var(--accent-pink);
-    margin-left: 20%;
+    background: rgba(246, 135, 179, 0.12);
+    border-left: 4px solid var(--accent-pink);
+    margin-left: 15%;
+    padding: var(--spacing-lg);
+    border-radius: var(--radius-lg);
 }
 
+.message-NPC .message-role {
+    color: var(--accent-pink);
+}
+
+/* 旁白 - 完全不同的样式，不像对话框 */
 .message-旁白 {
-    background: rgba(99, 179, 237, 0.15);
-    border-left: 3px solid var(--accent-blue);
-    text-align: center;
+    background: transparent;
+    border: none;
+    padding: var(--spacing-xl);
+    margin: var(--spacing-xl) 5%;
+    text-align: left;
     font-style: italic;
+    color: #94a3b8;
+    line-height: 1.8;
+    font-size: 0.95em;
+    position: relative;
+}
+
+/* 旁白的装饰性引号 */
+.message-旁白::before {
+    content: '"';
+    position: absolute;
+    top: -10px;
+    left: -15px;
+    font-size: 4em;
+    color: rgba(148, 163, 184, 0.2);
+    font-family: Georgia, serif;
+    line-height: 1;
+}
+
+/* 旁白没有头部（不显示角色名和时间） */
+.message-旁白 .message-header {
+    display: none;
+}
+
+/* 旁白内容 */
+.message-旁白 .message-content {
+    color: #94a3b8;
+    font-style: italic;
+    font-size: 1em;
+    line-height: 1.8;
 }
 
 .message-记忆 {
-    background: rgba(251, 191, 36, 0.15);
-    border-left: 3px solid var(--gold);
+    background: transparent;
+    border: none;
+    padding: var(--spacing-xl);
+    margin: var(--spacing-xl) 5%;
+    text-align: left;
     font-style: italic;
-    opacity: 0.8;
+    color: #94a3b8;
+    line-height: 1.8;
+    font-size: 0.95em;
+    position: relative;
+}
+
+/* 记忆的装饰性引号 */
+.message-记忆::before {
+    content: '◈';
+    position: absolute;
+    top: -10px;
+    left: -15px;
+    font-size: 2em;
+    color: rgba(251, 191, 36, 0.3);
+    line-height: 1;
+}
+
+/* 记忆没有头部（不显示角色名和时间） */
+.message-记忆 .message-header {
+    display: none;
+}
+
+/* 记忆内容 */
+.message-记忆 .message-content {
+    color: #fde68a;
+    font-style: italic;
+    font-size: 1em;
+    line-height: 1.8;
 }
 
 .message-header {
@@ -536,12 +623,13 @@
     white-space: pre-wrap;
 }
 
-/* 输入区域 */
+/* 输入区域 - 固定在底部 */
 .chat-input-area {
     background: var(--glass-bg);
     padding: var(--spacing-xl);
     border-radius: var(--radius-xl);
     border: 1px solid var(--glass-border);
+    flex-shrink: 0; /* 不压缩，保持固定高度 */
 }
 
 .chat-controls {
@@ -564,14 +652,55 @@
     border-radius: var(--radius-lg);
     color: var(--text-light);
     font-size: 1em;
-    resize: vertical;
+    resize: none; /* 禁止调节高度 */
+    height: 80px; /* 固定高度 */
     min-height: 80px;
+    max-height: 80px; /* 限制最大高度 */
     font-family: var(--font-body);
+    overflow-y: auto; /* 内部可以滚动 */
 }
 
 #chat-input:focus {
     outline: none;
     border-color: var(--accent-pink);
+}
+
+/* 打字加载动画（三点跳动） */
+.typing-indicator {
+    display: inline-flex;
+    gap: 4px;
+    padding: 8px 0;
+}
+
+.typing-dot {
+    width: 8px;
+    height: 8px;
+    background: var(--accent-pink);
+    border-radius: 50%;
+    animation: typingBounce 1.4s infinite ease-in-out;
+}
+
+.typing-dot:nth-child(1) {
+    animation-delay: 0s;
+}
+
+.typing-dot:nth-child(2) {
+    animation-delay: 0.2s;
+}
+
+.typing-dot:nth-child(3) {
+    animation-delay: 0.4s;
+}
+
+@keyframes typingBounce {
+    0%, 80%, 100% {
+        transform: translateY(0);
+        opacity: 0.5;
+    }
+    40% {
+        transform: translateY(-8px);
+        opacity: 1;
+    }
 }
 
 /* 动画 */

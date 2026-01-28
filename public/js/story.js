@@ -29,15 +29,19 @@ async function loadStoryList() {
 
     const result = await response.json();
 
+    console.log('[story] 加载故事列表结果:', result);
+
     if (!result.success) {
       throw new Error(result.error);
     }
 
     hideLoading();
 
-    const stories = result.stories;
+    const stories = result.stories || [];
     const listContainer = document.getElementById('story-list');
     const emptyContainer = document.getElementById('story-empty');
+
+    console.log('[story] 故事数量:', stories.length);
 
     if (stories.length === 0) {
       listContainer.innerHTML = '';
@@ -50,6 +54,7 @@ async function loadStoryList() {
 
   } catch (error) {
     hideLoading();
+    console.error('[story] 加载失败:', error);
     showNotification('加载失败: ' + error.message, 'error');
   }
 }
@@ -62,7 +67,15 @@ function renderStoryList(stories) {
 
   const html = stories.map(story => {
     const characterNames = story.characters.map(c => c.name || '未知').join(', ');
-    const preview = story.plot.keywords || '暂无情节描述';
+    // 处理 keywords（可能是数组或字符串）
+    let preview = '暂无情节描述';
+    if (story.plot.keywords) {
+      if (Array.isArray(story.plot.keywords)) {
+        preview = story.plot.keywords.join(', ');
+      } else {
+        preview = story.plot.keywords;
+      }
+    }
 
     return `
       <div class="story-card" data-id="${story.id}">
@@ -285,25 +298,23 @@ async function loadHistoryOptions() {
 
   const histories = data.histories || [];
 
-  console.log('[story] 加载的历史记录:', histories);
-
   // 筛选不同类型的记录
   const characters = histories.filter(h => h.toolType === 'character');
   const plots = histories.filter(h => h.toolType === 'plot');
   const worlds = histories.filter(h => h.toolType === 'world');
 
-  console.log('[story] 角色记录:', characters);
-  console.log('[story] 情节记录:', plots);
-  console.log('[story] 世界观记录:', worlds);
+  // 存储角色数据供后续使用
+  window._storyCharactersData = characters;
 
   // 填充情节下拉菜单
   const plotOptions = document.getElementById('plot-options');
   const plotSelect = document.getElementById('plot-select');
   if (plotOptions && plotSelect) {
     const plotHtml = plots.map(h => {
-      const preview = h.inputParams?.keywords || h.content.substring(0, 50);
       const id = h._id || h.id;
-      return `<div class="custom-select-option" data-value="${id}">📖 ${preview}...</div>`;
+      // 优先使用结构化数据中的标题，回退到输入参数，最后使用内容截取
+      const title = h.structuredData?.plot?.title || h.inputParams?.keywords || h.content.substring(0, 30);
+      return `<div class="custom-select-option" data-value="${id}">📖 ${title}</div>`;
     }).join('');
     plotOptions.innerHTML = `<div class="custom-select-option" data-value="auto">🎭 自动生成</div>` + plotHtml;
 
@@ -311,7 +322,8 @@ async function loadHistoryOptions() {
     const plotSelectHtml = `<option value="">选择情节</option><option value="auto">🎭 自动生成</option>` +
       plots.map(h => {
         const id = h._id || h.id;
-        return `<option value="${id}">📖 ${h.inputParams?.keywords || '情节'}</option>`;
+        const title = h.structuredData?.plot?.title || h.inputParams?.keywords || '情节';
+        return `<option value="${id}">📖 ${title}</option>`;
       }).join('');
     plotSelect.innerHTML = plotSelectHtml;
   }
@@ -321,9 +333,10 @@ async function loadHistoryOptions() {
   const worldSelect = document.getElementById('world-select');
   if (worldOptions && worldSelect) {
     const worldHtml = worlds.map(h => {
-      const preview = h.inputParams?.era || h.content.substring(0, 50);
       const id = h._id || h.id;
-      return `<div class="custom-select-option" data-value="${id}">🌍 ${preview}...</div>`;
+      // 优先使用结构化数据中的名称，回退到输入参数，最后使用内容截取
+      const name = h.structuredData?.world?.worldName || h.inputParams?.era || h.content.substring(0, 30);
+      return `<div class="custom-select-option" data-value="${id}">🌍 ${name}</div>`;
     }).join('');
     worldOptions.innerHTML = `<div class="custom-select-option" data-value="auto">🌍 自动生成</div>` + worldHtml;
 
@@ -331,16 +344,14 @@ async function loadHistoryOptions() {
     const worldSelectHtml = `<option value="">选择世界观</option><option value="auto">🌍 自动生成</option>` +
       worlds.map(h => {
         const id = h._id || h.id;
-        return `<option value="${id}">🌍 ${h.inputParams?.era || '世界观'}</option>`;
+        const name = h.structuredData?.world?.worldName || h.inputParams?.era || '世界观';
+        return `<option value="${id}">🌍 ${name}</option>`;
       }).join('');
     worldSelect.innerHTML = worldSelectHtml;
   }
 
   // 重新初始化下拉菜单
   initCustomSelects();
-
-  // 存储角色数据供后续使用
-  window._storyCharactersData = characters;
 }
 
 /**
@@ -364,21 +375,22 @@ function updateCharacterSections() {
 
     if (characters.length > 0) {
       optionsHtml = characters.map(h => {
-        const preview = h.inputParams?.archetype || h.content.substring(0, 30);
         const id = h._id || h.id;  // 兼容 _id 和 id
-        return `<div class="custom-select-option" data-value="${id}">🎭 ${preview}...</div>`;
+        // 优先使用结构化数据中的名称，回退到输入参数，最后使用内容截取
+        const name = h.structuredData?.character?.name || h.inputParams?.archetype || h.content.substring(0, 30);
+        return `<div class="custom-select-option" data-value="${id}">🎭 ${name}</div>`;
       }).join('');
 
       selectHtml += characters.map(h => {
-        const label = h.inputParams?.archetype || '角色';
         const id = h._id || h.id;  // 兼容 _id 和 id
-        return `<option value="${id}">🎭 ${label}</option>`;
+        const name = h.structuredData?.character?.name || h.inputParams?.archetype || '角色';
+        return `<option value="${id}">🎭 ${name}</option>`;
       }).join('');
     }
 
     html += `
       <div class="input-group">
-        <label>${role} ${isMain ? '(必选)' : '(可选)'} ${i + 1}</label>
+        <label>${role} ${i + 1}</label>
         <div class="custom-select" data-select="${selectId}">
           <div class="custom-select-trigger">
             <span class="custom-select-value">选择${role}角色</span>
@@ -482,6 +494,12 @@ async function submitCreateStory() {
     world: { historyId: worldValue === 'auto' ? null : worldValue }
   };
 
+  // 添加模型配置
+  const modelConfig = getCurrentModel();
+  if (modelConfig) {
+    requestData.modelConfig = modelConfig;
+  }
+
   console.log('请求数据:', requestData);
 
   showLoading();
@@ -526,8 +544,6 @@ async function enterStory(storyId) {
     return;
   }
 
-  showLoading();
-
   try {
     const response = await fetch(`/api/story/${storyId}`, {
       headers: {
@@ -541,14 +557,16 @@ async function enterStory(storyId) {
       throw new Error(result.error);
     }
 
-    hideLoading();
-
     currentStoryId = storyId;
     currentStoryData = result.story;
 
     // 切换到对话界面
     document.getElementById('story演绎-page').style.display = 'none';
-    document.getElementById('story-chat-page').style.display = 'block';
+    document.getElementById('story-chat-page').style.display = 'flex';
+
+    // 隐藏顶栏和导航栏
+    document.querySelector('.app-header').style.display = 'none';
+    document.querySelector('.main-nav').style.display = 'none';
 
     // 更新标题
     document.getElementById('chat-story-name').textContent = result.story.name;
@@ -559,14 +577,7 @@ async function enterStory(storyId) {
     // 更新消息计数
     updateMessageCount(result.story.messages?.length || 0);
 
-    // 初始化NPC选择器
-    initNpcSelector();
-
-    // 监听消息类型变化
-    initMessageTypeListener();
-
   } catch (error) {
-    hideLoading();
     showNotification('加载失败: ' + error.message, 'error');
   }
 }
@@ -581,65 +592,15 @@ function backToStoryList() {
   document.getElementById('story-chat-page').style.display = 'none';
   document.getElementById('story演绎-page').style.display = 'block';
 
+  // 显示顶栏和导航栏
+  document.querySelector('.app-header').style.display = 'block';
+  document.querySelector('.main-nav').style.display = 'flex';
+
   // 清空聊天输入
   document.getElementById('chat-input').value = '';
 
   // 重新加载故事列表
   loadStoryList();
-}
-
-/**
- * 初始化NPC选择器
- */
-function initNpcSelector() {
-  if (!currentStoryData) return;
-
-  const npcContainer = document.getElementById('npc-options');
-  const npcSelectGroup = document.getElementById('npc-select-group');
-
-  // 筛选NPC
-  const npcs = currentStoryData.characters
-    .map((c, index) => ({ ...c, index }))
-    .filter(c => c.role === 'NPC');
-
-  if (npcs.length === 0) {
-    npcSelectGroup.style.display = 'none';
-    return;
-  }
-
-  npcSelectGroup.style.display = 'block';
-
-  const html = npcs.map(npc => {
-    return `<div class="custom-select-option" data-value="${npc.index}">🎭 ${npc.name || '未知NPC'}</div>`;
-  }).join('');
-
-  npcContainer.innerHTML = html;
-
-  // 重新初始化下拉菜单
-  setTimeout(() => {
-    initCustomSelects();
-  }, 10);
-}
-
-/**
- * 监听消息类型变化
- */
-function initMessageTypeListener() {
-  const npcSelectGroup = document.getElementById('npc-select-group');
-
-  // 使用事件委托监听下拉菜单变化
-  document.addEventListener('click', function(e) {
-    if (e.target.closest('[data-select="message-type"]')) {
-      setTimeout(() => {
-        const type = getCustomSelectValue('message-type');
-        if (type === 'NPC') {
-          npcSelectGroup.style.display = 'block';
-        } else {
-          npcSelectGroup.style.display = 'none';
-        }
-      }, 10);
-    }
-  });
 }
 
 /**
@@ -672,19 +633,40 @@ function renderMessage(message) {
     minute: '2-digit'
   });
 
-  let role = message.type;
-  let charName = '';
+  // 旁白 - 不显示头部（角色名和时间）
+  if (message.type === '旁白') {
+    return `
+      <div class="message message-旁白">
+        <div class="message-content">${message.content}</div>
+      </div>
+    `;
+  }
 
-  if (message.type === 'NPC' && message.characterId !== undefined && currentStoryData) {
-    const npc = currentStoryData.characters[message.characterId];
-    charName = npc?.name || '未知NPC';
-    role = `${message.type}(${charName})`;
+  let displayName = '';
+
+  if (message.type === '主角' && message.characterId !== undefined && currentStoryData) {
+    const character = currentStoryData.characters[message.characterId];
+    displayName = character?.name || '主角';
+  } else if (message.type === 'NPC') {
+    // 优先使用 characterId 查找，如果没有则使用 characterName
+    if (message.characterId !== undefined && currentStoryData) {
+      const npc = currentStoryData.characters[message.characterId];
+      displayName = npc?.name || 'NPC';
+    } else if (message.characterName) {
+      displayName = message.characterName;  // 直接使用 AI 提供的名称
+    } else {
+      displayName = 'NPC';
+    }
+  } else if (message.type === '记忆') {
+    displayName = '记忆';
+  } else {
+    displayName = message.type;
   }
 
   return `
     <div class="message message-${message.type}">
       <div class="message-header">
-        <span class="message-role">${role}</span>
+        <span class="message-role">${displayName}</span>
         <span class="message-time">${time}</span>
       </div>
       <div class="message-content">${message.content}</div>
@@ -699,11 +681,31 @@ function updateLastMessage(content) {
   const container = document.getElementById('chat-messages');
   const messages = container.querySelectorAll('.message');
 
+  // 尝试解析JSON，如果失败则显示原始内容
+  let displayContent = content;
+  let displayType = 'NPC';
+
+  // 尝试从响应中提取JSON
+  const jsonMatch = content.match(/```json\s*([\s\S]*?)\s*```/);
+  if (jsonMatch) {
+    try {
+      const responseData = JSON.parse(jsonMatch[1]);
+      if (responseData.responses && responseData.responses.length > 0) {
+        // 显示第一条响应的内容
+        const firstResponse = responseData.responses[0];
+        displayType = firstResponse.type;
+        displayContent = firstResponse.content;
+      }
+    } catch (e) {
+      // JSON解析失败，显示原始内容
+    }
+  }
+
   if (messages.length === 0) {
     // 创建新消息
     const tempMessage = {
-      type: getCustomSelectValue('message-type') === '旁白' ? '旁白' : 'NPC',
-      content: content,
+      type: displayType,
+      content: displayContent,
       timestamp: new Date()
     };
     container.innerHTML += renderMessage(tempMessage);
@@ -712,7 +714,7 @@ function updateLastMessage(content) {
     const lastMessage = messages[messages.length - 1];
     const contentDiv = lastMessage.querySelector('.message-content');
     if (contentDiv) {
-      contentDiv.textContent = content;
+      contentDiv.textContent = displayContent;
     }
   }
 
@@ -735,6 +737,49 @@ function scrollToBottom() {
 }
 
 /**
+ * 显示按钮加载状态
+ */
+function showButtonLoading() {
+  const sendBtn = document.querySelector('#story-chat-page .generate-btn');
+  const chatInput = document.getElementById('chat-input');
+
+  if (sendBtn) {
+    sendBtn.dataset.originalText = sendBtn.textContent;
+    sendBtn.innerHTML = `
+      <span class="btn-loading-indicator">
+        <span class="btn-loading-dot"></span>
+        <span class="btn-loading-dot"></span>
+        <span class="btn-loading-dot"></span>
+      </span>
+    `;
+    sendBtn.disabled = true;
+    sendBtn.classList.add('loading');
+  }
+
+  if (chatInput) {
+    chatInput.disabled = true;
+  }
+}
+
+/**
+ * 隐藏按钮加载状态
+ */
+function hideButtonLoading() {
+  const sendBtn = document.querySelector('#story-chat-page .generate-btn');
+  const chatInput = document.getElementById('chat-input');
+
+  if (sendBtn) {
+    sendBtn.textContent = sendBtn.dataset.originalText || '发送';
+    sendBtn.disabled = false;
+    sendBtn.classList.remove('loading');
+  }
+
+  if (chatInput) {
+    chatInput.disabled = false;
+  }
+}
+
+/**
  * 发送消息
  */
 async function sendMessage() {
@@ -744,29 +789,17 @@ async function sendMessage() {
   }
 
   const content = document.getElementById('chat-input').value.trim();
-  const messageType = getCustomSelectValue('message-type');
 
   if (!content) {
     showNotification('请输入消息', 'error');
     return;
   }
 
-  const data = { type: messageType, content };
-
-  // 如果是NPC，需要选择NPC
-  if (messageType === 'NPC') {
-    const npcIndex = getCustomSelectValue('npc-select');
-    if (!npcIndex) {
-      showNotification('请选择NPC', 'error');
-      return;
-    }
-    data.characterId = parseInt(npcIndex);
-  }
-
-  // 渲染用户消息
+  // 渲染用户消息（作为主角）
+  const mainCharacterIndex = currentStoryData.characters.findIndex(c => c.role === '主角');
   const userMessage = {
-    type: messageType,
-    characterId: data.characterId,
+    type: '主角',
+    characterId: mainCharacterIndex !== -1 ? mainCharacterIndex : undefined,
     content: content,
     timestamp: new Date()
   };
@@ -780,37 +813,33 @@ async function sendMessage() {
   const currentCount = parseInt(document.getElementById('chat-message-count').textContent) || 0;
   updateMessageCount(currentCount + 1);
 
-  // 流式调用AI
-  showLoading();
+  // 显示按钮加载状态（禁用输入和按钮）
+  showButtonLoading();
 
-  try {
-    await sendMessageStream(
-      currentStoryId,
-      data,
-      (content) => {
-        // onProgress - 实时更新最后一条消息
-        updateLastMessage(content);
-      },
-      (finalContent) => {
-        // onComplete
-        hideLoading();
-        showNotification('发送成功', 'success');
+  // 使用非流式调用（避免看到JSON原始数据）
+  sendMessageNonStream(
+    currentStoryId,
+    { content },
+    async (finalContent) => {
+      // onComplete
+      hideButtonLoading();
+      showNotification('发送成功', 'success');
 
-        // 重新加载消息以获取最新的消息列表（包括可能的记忆压缩）
-        setTimeout(() => {
-          refreshMessages();
-        }, 500);
-      },
-      (error) => {
-        // onError
-        hideLoading();
-        showNotification('发送失败: ' + error, 'error');
-      }
-    );
-  } catch (error) {
-    hideLoading();
-    showNotification('发送失败: ' + error.message, 'error');
-  }
+      // 等待一小段时间，确保后端完成消息保存
+      await new Promise(resolve => setTimeout(resolve, 500));
+
+      // 重新加载消息以获取最新的消息列表
+      await refreshMessages();
+
+      // 轮询检查记忆压缩是否完成（消息数是否变化）
+      startMemoryCompressionPolling();
+    },
+    (error) => {
+      // onError
+      hideButtonLoading();
+      showNotification('发送失败: ' + error, 'error');
+    }
+  );
 }
 
 /**
@@ -835,6 +864,71 @@ async function refreshMessages() {
   }
 }
 
+/**
+ * 开始轮询检查记忆压缩是否完成
+ */
+let memoryPollingInterval = null;
+let memoryPollingTimeout = null;
+
+function startMemoryCompressionPolling() {
+  // 清除之前的轮询
+  if (memoryPollingInterval) {
+    clearInterval(memoryPollingInterval);
+  }
+  if (memoryPollingTimeout) {
+    clearTimeout(memoryPollingTimeout);
+  }
+
+  const token = localStorage.getItem('token');
+  let initialMessageCount = currentStoryData?.messages?.length || 0;
+  let checkCount = 0;
+  const maxChecks = 15; // 最多检查15次（15秒）
+
+  memoryPollingInterval = setInterval(async () => {
+    checkCount++;
+
+    if (checkCount > maxChecks) {
+      clearInterval(memoryPollingInterval);
+      return;
+    }
+
+    try {
+      const response = await fetch(`/api/story/${currentStoryId}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        const currentMessageCount = result.story.messages?.length || 0;
+
+        // 检查消息数是否减少（记忆压缩会减少消息数，正常回复会增加）
+        if (currentMessageCount < initialMessageCount) {
+          // 更新显示
+          currentStoryData = result.story;
+          renderMessages(result.story.messages || []);
+          updateMessageCount(currentMessageCount);
+
+          // 停止轮询
+          clearInterval(memoryPollingInterval);
+        } else if (currentMessageCount > initialMessageCount) {
+          // 更新初始消息数，继续轮询等待可能的压缩
+          initialMessageCount = currentMessageCount;
+        }
+      }
+    } catch (error) {
+      clearInterval(memoryPollingInterval);
+    }
+  }, 1000); // 每秒检查一次
+
+  // 15秒后自动停止轮询
+  memoryPollingTimeout = setTimeout(() => {
+    clearInterval(memoryPollingInterval);
+  }, 15000);
+}
+
 // ==================== 页面初始化 ====================
 
 // 页面加载时自动加载故事列表
@@ -854,6 +948,18 @@ document.addEventListener('DOMContentLoaded', function() {
       searchTimeout = setTimeout(() => {
         searchStories(this.value);
       }, 300);
+    });
+  }
+
+  // 聊天输入框回车发送消息
+  const chatInput = document.getElementById('chat-input');
+  if (chatInput) {
+    chatInput.addEventListener('keydown', function(e) {
+      // 回车键发送（Shift+回车换行）
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        sendMessage();
+      }
     });
   }
 });

@@ -172,8 +172,8 @@ async function getStory(storyId) {
     return await response.json();
 }
 
-// 流式发送消息
-async function sendMessageStream(storyId, data, onProgress, onComplete, onError) {
+// 非流式发送消息（故事演绎使用）
+async function sendMessageNonStream(storyId, data, onComplete, onError) {
     const token = localStorage.getItem('token');
     const modelConfig = getCurrentModel();
 
@@ -181,60 +181,56 @@ async function sendMessageStream(storyId, data, onProgress, onComplete, onError)
         data.modelConfig = modelConfig;
     }
 
-    const response = await fetch(`/api/story/${storyId}/message`, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify(data)
-    });
+    try {
+        const response = await fetch(`/api/story/${storyId}/message`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify(data)
+        });
 
-    if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || '请求失败');
-    }
-
-    const reader = response.body.getReader();
-    const decoder = new TextDecoder();
-    let fullContent = '';
-
-    while (true) {
-        const { done, value } = await reader.read();
-
-        if (done) {
-            onComplete(fullContent);
-            break;
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.error || '请求失败');
         }
 
-        const chunk = decoder.decode(value, { stream: true });
-        const lines = chunk.split('\n').filter(line => line.trim());
+        // 读取完整的响应体
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder();
+        let fullContent = '';
+
+        while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+            fullContent += decoder.decode(value, { stream: true });
+        }
+
+        // 解析SSE格式的响应
+        const lines = fullContent.split('\n').filter(line => line.trim());
+        let finalContent = '';
 
         for (const line of lines) {
             if (line.startsWith('data: ')) {
                 const dataStr = line.slice(6);
-
                 try {
                     const parsed = JSON.parse(dataStr);
-
                     if (parsed.error) {
                         onError(parsed.error);
                         return;
                     }
-
-                    if (parsed.done) {
-                        onComplete(fullContent);
-                        return;
-                    }
-
                     if (parsed.content) {
-                        fullContent += parsed.content;
-                        onProgress(fullContent);
+                        finalContent += parsed.content;
                     }
                 } catch (e) {
                     // 忽略解析错误
                 }
             }
         }
+
+        onComplete(finalContent);
+    } catch (error) {
+        onError(error.message);
     }
 }

@@ -128,4 +128,31 @@
     #model-select-container .custom-select-trigger {
         width: 100%;
     }
+
+    /* 故事演绎页面按钮 */
+    .story-list-header {
+        flex-direction: column;
+    }
+
+    .action-buttons {
+        width: 100%;
+        flex-direction: row;
+    }
+
+    .action-buttons button {
+        flex: 1;
+        min-width: 0;
+        padding: var(--spacing-md) var(--spacing-lg);
+        font-size: 1em;
+        height: 44px;
+    }
+
+    /* 搜索框 */
+    .search-box {
+        width: 100%;
+    }
+
+    .search-box input {
+        width: 100%;
+    }
 }

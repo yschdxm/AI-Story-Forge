@@ -56,6 +56,12 @@ body {
     display: block;
 }
 
+/* 故事聊天页面特殊布局 - 使用 flex 布局 */
+#story-chat-page.active {
+    display: flex;
+    flex-direction: column;
+}
+
 /* 空页面样式 */
 .empty-page {
     text-align: center;
