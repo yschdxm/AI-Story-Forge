@@ -63,8 +63,8 @@ router.put('/password', authenticateToken, async (req, res) => {
       return res.status(400).json({ success: false, error: '原密码错误' });
     }
 
-    // 更新密码
-    await user.updatePassword(newPassword);
+    // 使用静态方法更新密码（绕过中间件）
+    await User.updateUserPassword(req.user._id, newPassword);
 
     res.json({
       success: true,
