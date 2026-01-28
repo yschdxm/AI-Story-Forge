@@ -12,6 +12,11 @@ async function loadModelsList() {
     const modelSelectContainer = document.getElementById('model-select-container');
     const currentModelSpan = document.getElementById('current-model');
 
+    // 如果页面没有模型选择器元素，直接返回（例如个人中心页面）
+    if (!modelSelectContainer || !currentModelSpan) {
+        return;
+    }
+
     if (!token) {
         // 未登录，只显示公用模型
         await loadPublicModels();
@@ -104,6 +109,11 @@ async function loadSelectedModelFromServer() {
 function renderModelSelect() {
     const modelSelectContainer = document.getElementById('model-select-container');
     const currentModelSpan = document.getElementById('current-model');
+
+    // 如果页面没有模型选择器，直接返回（例如个人中心页面）
+    if (!modelSelectContainer || !currentModelSpan) {
+        return;
+    }
 
     // 构建所有模型选项（公用 + 个人）
     const allModels = [];
