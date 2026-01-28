@@ -1064,15 +1064,15 @@ async function checkAndCompressMemory(storyId, modelConfig) {
   const memoryMessages = story.messages.filter(m => m.type === '记忆');
   const dialogueMessages = story.messages.filter(m => m.type !== '记忆');
 
-  // 检查是否需要压缩（原始对话 >= 60条时，压缩前50条，保留最新的10条）
-  // 这样压缩后至少还有10条可见的对话消息
-  if (dialogueMessages.length < 60) {
+  // 检查是否需要压缩（保守方案：原始对话 >= 100条时，压缩前70条，保留最新的30条）
+  // 这样压缩后至少还有30条可见的对话消息，体验更好
+  if (dialogueMessages.length < 100) {
     return null;
   }
 
-  // 获取最远的50条对话消息（最早的50条），保留最新的10条
-  const messagesToCompress = dialogueMessages.slice(0, 50);
-  const dialogueToKeep = dialogueMessages.slice(50);
+  // 获取最远的70条对话消息（最早的70条），保留最新的30条
+  const messagesToCompress = dialogueMessages.slice(0, 70);
+  const dialogueToKeep = dialogueMessages.slice(70);
 
   // 构建记忆压缩提示词
   const systemPrompt = `你是一个故事记忆压缩专家。请将以下对话历史压缩成简洁的记忆摘要。
