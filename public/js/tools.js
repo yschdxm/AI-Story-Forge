@@ -14,7 +14,7 @@ async function generateCharacter() {
     }
 
     // 仅在响应前显示加载状态
-    showLoading();
+    showLoading(true, 'ai-creating');
 
     const element = document.getElementById('character-result');
     element.innerHTML = '';
@@ -68,7 +68,7 @@ async function weavePlot() {
     }
 
     // 仅在响应前显示加载状态
-    showLoading();
+    showLoading(true, 'ai-creating');
 
     const element = document.getElementById('plot-result');
     element.innerHTML = '';
@@ -139,7 +139,7 @@ async function visualizeScene() {
     }
 
     // 仅在响应前显示加载状态
-    showLoading();
+    showLoading(true, 'ai-creating');
 
     const element = document.getElementById('visual-result');
     element.innerHTML = '';
@@ -209,7 +209,7 @@ async function transformStyle() {
     }
 
     // 仅在响应前显示加载状态
-    showLoading();
+    showLoading(true, 'ai-creating');
 
     const element = document.getElementById('style-result');
     element.innerHTML = '';
@@ -280,7 +280,7 @@ async function coWrite() {
     }
 
     // 仅在响应前显示加载状态
-    showLoading();
+    showLoading(true, 'ai-creating');
 
     const element = document.getElementById('cowrite-result');
     element.innerHTML = '';
@@ -355,7 +355,7 @@ async function buildWorld() {
     }
 
     // 仅在响应前显示加载状态
-    showLoading();
+    showLoading(true, 'ai-creating');
 
     const element = document.getElementById('world-result');
     element.innerHTML = '';
@@ -431,7 +431,7 @@ async function designPuzzle() {
     }
 
     // 仅在响应前显示加载状态
-    showLoading();
+    showLoading(true, 'ai-creating');
 
     const element = document.getElementById('puzzle-result');
     element.innerHTML = '';
@@ -509,7 +509,7 @@ async function generateNames() {
     }
 
     // 仅在响应前显示加载状态
-    showLoading();
+    showLoading(true, 'ai-creating');
 
     const element = document.getElementById('names-result');
     element.innerHTML = '';
@@ -885,7 +885,7 @@ async function deleteHistory(id) {
         return;
     }
 
-    showLoading();
+    showLoading(true, 'ai-creating');
 
     try {
         const response = await fetch(`/api/history/${id}`, {
@@ -1137,7 +1137,7 @@ async function removeFromFavorites(id) {
         return;
     }
 
-    showLoading();
+    showLoading(true, 'ai-creating');
 
     try {
         const response = await fetch(`/api/favorites/${id}`, {

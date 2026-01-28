@@ -18,7 +18,7 @@ async function loadStoryList() {
     return;
   }
 
-  showLoading();
+  showLoading(true, 'ai-creating');
 
   try {
     const response = await fetch('/api/story/list', {
@@ -110,7 +110,7 @@ async function searchStories(keyword) {
   const token = localStorage.getItem('token');
   if (!token) return;
 
-  showLoading();
+  showLoading(true, 'ai-creating');
 
   try {
     const response = await fetch('/api/story/list', {
@@ -165,7 +165,7 @@ async function deleteStory(storyId) {
   const token = localStorage.getItem('token');
   if (!token) return;
 
-  showLoading();
+  showLoading(true, 'ai-creating');
 
   try {
     const response = await fetch(`/api/story/${storyId}`, {
@@ -200,7 +200,7 @@ async function deleteAllStories() {
   const token = localStorage.getItem('token');
   if (!token) return;
 
-  showLoading();
+  showLoading(true, 'ai-creating');
 
   try {
     const response = await fetch('/api/story', {
@@ -502,7 +502,7 @@ async function submitCreateStory() {
 
   console.log('请求数据:', requestData);
 
-  showLoading();
+  showLoading(true, 'ai-creating');
 
   try {
     const response = await fetch('/api/story/create', {

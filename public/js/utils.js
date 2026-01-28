@@ -3,10 +3,21 @@
 // 版本: 1.0
 
 // 显示/隐藏加载状态
-function showLoading(show = true) {
+// type: 'loading' | 'ai-creating'
+function showLoading(show = true, type = 'loading') {
     const loading = document.getElementById('loading');
+    const loadingText = document.getElementById('loading-text');
+
     if (loading) {
         if (show) {
+            // 设置加载文本
+            if (loadingText) {
+                if (type === 'ai-creating') {
+                    loadingText.textContent = 'AI正在创作中...';
+                } else {
+                    loadingText.textContent = '加载中...';
+                }
+            }
             loading.classList.add('show');
         } else {
             loading.classList.remove('show');
