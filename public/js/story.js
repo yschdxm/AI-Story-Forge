@@ -291,6 +291,16 @@ function closeCreateStoryModal() {
   // 清空表单
   document.getElementById('create-story-form').reset();
   document.getElementById('character-sections').innerHTML = '';
+
+  // 重置下拉菜单的初始化状态，以便下次打开时重新初始化
+  const plotSelect = document.querySelector('.custom-select[data-select="plot-select"]');
+  const worldSelect = document.querySelector('.custom-select[data-select="world-select"]');
+  if (plotSelect) {
+    delete plotSelect.dataset.initialized;
+  }
+  if (worldSelect) {
+    delete worldSelect.dataset.initialized;
+  }
 }
 
 /**

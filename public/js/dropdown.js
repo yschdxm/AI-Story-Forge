@@ -12,11 +12,18 @@ function initCustomSelects() {
 
 // 初始化单个自定义下拉菜单
 function initSingleCustomSelect(selectContainer) {
+    // 检查是否已经初始化过
+    if (selectContainer.dataset.initialized === 'true') {
+        return;
+    }
+
     const trigger = selectContainer.querySelector('.custom-select-trigger');
     const optionsContainer = selectContainer.querySelector('.custom-select-options');
-    const options = optionsContainer.querySelectorAll('.custom-select-option');
     const nativeSelect = selectContainer.querySelector('select');
     const valueDisplay = trigger.querySelector('.custom-select-value');
+
+    // 标记为已初始化
+    selectContainer.dataset.initialized = 'true';
 
     // 点击触发器打开/关闭下拉菜单
     trigger.addEventListener('click', function(e) {
@@ -35,35 +42,37 @@ function initSingleCustomSelect(selectContainer) {
         trigger.classList.toggle('active', isOpen);
     });
 
-    // 点击选项
-    options.forEach(option => {
-        option.addEventListener('click', function() {
-            const value = this.getAttribute('data-value');
-            const text = this.textContent;
+    // 点击选项（使用事件委托，动态获取选项）
+    optionsContainer.addEventListener('click', function(e) {
+        const option = e.target.closest('.custom-select-option');
+        if (!option) return;
 
-            console.log(`[dropdown] 点击选项: ${text}, data-value=${value}, nativeSelect=${nativeSelect ? nativeSelect.id : 'null'}`);
+        const value = option.getAttribute('data-value');
+        const text = option.textContent;
 
-            // 更新显示值
-            valueDisplay.textContent = text;
+        console.log(`[dropdown] 点击选项: ${text}, data-value=${value}, nativeSelect=${nativeSelect ? nativeSelect.id : 'null'}`);
 
-            // 更新选中状态
-            options.forEach(opt => opt.classList.remove('selected'));
-            this.classList.add('selected');
+        // 更新显示值
+        valueDisplay.textContent = text;
 
-            // 更新原生select的值
-            if (nativeSelect) {
-                nativeSelect.value = value;
-                // 触发change事件
-                nativeSelect.dispatchEvent(new Event('change', { bubbles: true }));
-                console.log(`[dropdown] 更新 ${nativeSelect.id} = ${value}, 实际值=${nativeSelect.value}`);
-            } else {
-                console.log(`[dropdown] 未找到 nativeSelect for ${selectContainer.dataset.select}`);
-            }
+        // 更新选中状态（动态获取所有选项）
+        const currentOptions = optionsContainer.querySelectorAll('.custom-select-option');
+        currentOptions.forEach(opt => opt.classList.remove('selected'));
+        option.classList.add('selected');
 
-            // 关闭下拉菜单
-            optionsContainer.classList.remove('show');
-            trigger.classList.remove('active');
-        });
+        // 更新原生select的值
+        if (nativeSelect) {
+            nativeSelect.value = value;
+            // 触发change事件
+            nativeSelect.dispatchEvent(new Event('change', { bubbles: true }));
+            console.log(`[dropdown] 更新 ${nativeSelect.id} = ${value}, 实际值=${nativeSelect.value}`);
+        } else {
+            console.log(`[dropdown] 未找到 nativeSelect for ${selectContainer.dataset.select}`);
+        }
+
+        // 关闭下拉菜单
+        optionsContainer.classList.remove('show');
+        trigger.classList.remove('active');
     });
 
     // 点击外部关闭下拉菜单
@@ -88,14 +97,15 @@ function initSingleCustomSelect(selectContainer) {
     // 选项键盘导航
     optionsContainer.addEventListener('keydown', function(e) {
         const currentSelected = optionsContainer.querySelector('.custom-select-option.selected');
+        const currentOptions = optionsContainer.querySelectorAll('.custom-select-option');
         let nextOption = null;
 
         if (e.key === 'ArrowDown') {
             e.preventDefault();
-            nextOption = currentSelected?.nextElementSibling || options[0];
+            nextOption = currentSelected?.nextElementSibling || currentOptions[0];
         } else if (e.key === 'ArrowUp') {
             e.preventDefault();
-            nextOption = currentSelected?.previousElementSibling || options[options.length - 1];
+            nextOption = currentSelected?.previousElementSibling || currentOptions[currentOptions.length - 1];
         } else if (e.key === 'Enter' || e.key === ' ') {
             e.preventDefault();
             currentSelected?.click();
@@ -107,7 +117,7 @@ function initSingleCustomSelect(selectContainer) {
         }
 
         if (nextOption) {
-            options.forEach(opt => opt.classList.remove('selected'));
+            currentOptions.forEach(opt => opt.classList.remove('selected'));
             nextOption.classList.add('selected');
             nextOption.scrollIntoView({ block: 'nearest' });
         }
