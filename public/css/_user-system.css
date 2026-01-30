@@ -3,9 +3,9 @@
 /* 头部用户状态 */
 .header-content {
     display: flex;
+    flex-direction: column;
     justify-content: center;
     align-items: center;
-    flex-wrap: wrap;
     gap: var(--spacing-xl);
     max-width: 100%;
 }
@@ -13,8 +13,7 @@
 /* 标题部分 */
 .header-title {
     text-align: center;
-    flex: 1;
-    min-width: 300px;
+    width: 100%;
 }
 
 /* 用户控制部分 */
@@ -87,17 +86,6 @@
 .model-switcher-header span:first-child {
     font-weight: bold;
     color: var(--gold);
-}
-
-.current-model {
-    color: var(--accent-blue);
-    font-weight: bold;
-    min-width: 80px;
-    font-size: 0.85em;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    max-width: 150px;
 }
 
 /* 模型选择容器在顶栏的样式 */

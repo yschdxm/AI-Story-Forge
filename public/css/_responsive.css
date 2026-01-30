@@ -155,13 +155,18 @@
 
     .user-status .user-welcome,
     .user-status .user-role {
-        width: 100%;
+        flex: 1;
+        min-width: calc(50% - var(--spacing-sm));
         text-align: center;
         justify-content: center;
     }
 
-    .user-status .user-role {
-        margin-bottom: var(--spacing-sm);
+    .user-status .user-center-link,
+    .user-status .logout-btn {
+        flex: 1;
+        min-width: calc(33.33% - var(--spacing-sm));
+        text-align: center;
+        justify-content: center;
     }
 
     .user-status .user-center-link,
@@ -175,13 +180,20 @@
     .model-switcher-header {
         width: 100%;
         justify-content: space-between;
-        flex-wrap: wrap;
+        flex-wrap: nowrap;
         gap: var(--spacing-sm);
+        flex-direction: row;
+        align-items: center;
+    }
+
+    .model-switcher-header span:first-child {
+        white-space: nowrap;
+        flex-shrink: 0;
     }
 
     #model-select-container {
-        width: 100%;
-        min-width: auto;
+        flex: 1;
+        min-width: 0;
     }
 
     #model-select-container .custom-select-trigger {
@@ -199,20 +211,31 @@
 
     /* 故事演绎页面按钮 */
     .story-list-header {
-        flex-direction: column;
+        flex-direction: row;
+        align-items: center;
+    }
+
+    .search-box {
+        flex: 1;
+        min-width: 0;
     }
 
     .action-buttons {
-        width: 100%;
-        flex-direction: row;
+        flex-wrap: nowrap;
     }
 
     .action-buttons button {
-        flex: 1;
-        min-width: 0;
-        padding: var(--spacing-md) var(--spacing-lg);
-        font-size: 1em;
+        min-width: 44px;
+        padding: var(--spacing-md);
         height: 44px;
+    }
+
+    .action-buttons button .btn-text {
+        display: none;
+    }
+
+    .action-buttons button .btn-icon {
+        display: inline;
     }
 
     /* 搜索框 */

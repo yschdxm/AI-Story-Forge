@@ -10,10 +10,9 @@ let personalModels = [];
 async function loadModelsList() {
     const token = localStorage.getItem('token');
     const modelSelectContainer = document.getElementById('model-select-container');
-    const currentModelSpan = document.getElementById('current-model');
 
     // 如果页面没有模型选择器元素，直接返回（例如个人中心页面）
-    if (!modelSelectContainer || !currentModelSpan) {
+    if (!modelSelectContainer) {
         return;
     }
 
@@ -108,10 +107,9 @@ async function loadSelectedModelFromServer() {
 // 渲染统一下拉菜单
 function renderModelSelect() {
     const modelSelectContainer = document.getElementById('model-select-container');
-    const currentModelSpan = document.getElementById('current-model');
 
     // 如果页面没有模型选择器，直接返回（例如个人中心页面）
-    if (!modelSelectContainer || !currentModelSpan) {
+    if (!modelSelectContainer) {
         return;
     }
 
@@ -141,7 +139,6 @@ function renderModelSelect() {
     // 如果没有模型，显示提示
     if (allModels.length === 0) {
         modelSelectContainer.innerHTML = '<p class="empty-tip">暂无可用模型</p>';
-        currentModelSpan.textContent = '未选择';
         return;
     }
 
@@ -182,13 +179,6 @@ function renderModelSelect() {
             }
         });
     }
-
-    // 更新当前模型显示
-    if (currentModel) {
-        currentModelSpan.textContent = currentModel.name;
-    } else {
-        currentModelSpan.textContent = '未选择';
-    }
 }
 
 // 选择模型
@@ -228,12 +218,6 @@ async function selectModel(type, modelId) {
             if (data.success) {
                 currentModel = modelConfig;
                 showNotification(`已切换到模型: ${model.name}`, 'success');
-
-                // 更新当前模型显示
-                const currentModelSpan = document.getElementById('current-model');
-                if (currentModelSpan) {
-                    currentModelSpan.textContent = currentModel.name;
-                }
             } else {
                 showNotification(data.error || '模型切换失败', 'error');
             }

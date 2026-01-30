@@ -27,7 +27,6 @@
                     <!-- 模型切换器 -->
                     <div class="model-switcher-header">
                         <span>🤖 模型:</span>
-                        <span id="current-model" class="current-model">加载中...</span>
                         <div id="model-select-container"></div>
                     </div>
                 </div>
@@ -51,8 +50,14 @@
                         <input type="text" id="story-search" placeholder="搜索故事...">
                     </div>
                     <div class="action-buttons">
-                        <button onclick="openCreateStoryModal()" class="btn-primary">创建故事</button>
-                        <button onclick="deleteAllStories()" class="btn-danger">删除全部</button>
+                        <button onclick="openCreateStoryModal()" class="btn-primary" title="创建故事">
+                            <span class="btn-icon">➕</span>
+                            <span class="btn-text">创建故事</span>
+                        </button>
+                        <button onclick="deleteAllStories()" class="btn-danger" title="删除全部">
+                            <span class="btn-icon">🗑️</span>
+                            <span class="btn-text">删除全部</span>
+                        </button>
                     </div>
                 </div>
 
