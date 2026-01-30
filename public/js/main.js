@@ -32,7 +32,9 @@ document.addEventListener('DOMContentLoaded', function() {
             // 如果切换到非故事演绎页面，清空故事列表和对话界面
             if (targetPage !== 'story演绎') {
                 const storyChatPage = document.getElementById('story-chat-page');
+                const story演绎Page = document.getElementById('story演绎-page');
                 if (storyChatPage) storyChatPage.style.display = 'none';
+                if (story演绎Page) story演绎Page.style.display = '';
             }
 
             // 如果切换到故事演绎页面，重新加载故事列表（不显示加载状态）
@@ -103,6 +105,14 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
 
+        // 如果切换到非故事演绎的工具，重置故事演绎页面的 display 属性
+        if (targetTool !== 'story演绎') {
+            const story演绎Page = document.getElementById('story演绎-page');
+            const storyChatPage = document.getElementById('story-chat-page');
+            if (story演绎Page) story演绎Page.style.display = '';
+            if (storyChatPage) storyChatPage.style.display = 'none';
+        }
+
         // 保存当前选中的模块到 localStorage
         localStorage.setItem('lastActiveTab', targetTool);
 
@@ -165,6 +175,10 @@ function restoreLastActivePage(navButtons, pageSections, tabButtons, toolSection
             // 切换页面内容
             pageSections.forEach(section => {
                 section.classList.remove('active');
+                // 重置所有页面的 display 属性（除了当前激活的页面）
+                if (section.id !== `${lastActivePage}-page`) {
+                    section.style.display = '';
+                }
             });
             targetPageSection.classList.add('active');
 
@@ -208,6 +222,14 @@ function restoreLastActivePage(navButtons, pageSections, tabButtons, toolSection
             });
             targetSection.classList.add('active');
 
+            // 如果恢复到非故事演绎的工具，重置故事演绎页面的 display 属性
+            if (lastActiveTab !== 'story演绎') {
+                const story演绎Page = document.getElementById('story演绎-page');
+                const storyChatPage = document.getElementById('story-chat-page');
+                if (story演绎Page) story演绎Page.style.display = '';
+                if (storyChatPage) storyChatPage.style.display = 'none';
+            }
+
             // 如果是历史记录标签，自动加载历史记录
             if (lastActiveTab === 'history') {
                 const token = localStorage.getItem('token');
@@ -248,6 +270,10 @@ function restoreLastActivePage(navButtons, pageSections, tabButtons, toolSection
 
             pageSections.forEach(section => {
                 section.classList.remove('active');
+                // 重置所有页面的 display 属性（除了默认页面）
+                if (section.id !== 'story演绎-page') {
+                    section.style.display = '';
+                }
             });
             defaultPageSection.classList.add('active');
 
