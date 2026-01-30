@@ -568,14 +568,11 @@ async function enterStory(storyId) {
     // 更新消息计数
     updateMessageCount(result.story.messages?.length || 0);
 
-    // 检查是否是首次进入（通过是否有首次进入标记判断）
-    const isFirstEntry = !localStorage.getItem(`story_entered_${storyId}`);
+    // 检查是否是首次进入（通过消息数量判断）
+    const isFirstEntry = !result.story.messages || result.story.messages.length === 0;
 
     // 如果是首次进入且有角色，显示角色卡片
     if (isFirstEntry && result.story.characters && result.story.characters.length > 0) {
-      // 标记为已进入
-      localStorage.setItem(`story_entered_${storyId}`, 'true');
-
       setTimeout(() => {
         openRoleCardModal(result.story.characters, 0);
       }, 500);
@@ -658,34 +655,21 @@ function renderMessage(message) {
 
   let displayName = '';
   let characterIndex = undefined;  // 用于点击显示角色卡片
-  let hasCharacterData = false;    // 是否有完整的角色数据
 
   if (message.type === '主角' && message.characterId !== undefined && currentStoryData) {
     const character = currentStoryData.characters[message.characterId];
     displayName = character?.name || '主角';
     characterIndex = message.characterId;
-    hasCharacterData = !!character;
   } else if (message.type === 'NPC') {
-    // 优先使用 characterId 查找
+    // 优先使用 characterId 查找，如果没有则使用 characterName
     if (message.characterId !== undefined && currentStoryData) {
       const npc = currentStoryData.characters[message.characterId];
       displayName = npc?.name || 'NPC';
       characterIndex = message.characterId;
-      hasCharacterData = !!npc;
-    } else if (message.characterName && currentStoryData) {
-      // 使用 characterName 在角色列表中查找
-      displayName = message.characterName;
-      const foundIndex = currentStoryData.characters.findIndex(c => c.name === message.characterName);
-      if (foundIndex !== -1) {
-        characterIndex = foundIndex;
-        const npc = currentStoryData.characters[foundIndex];
-        hasCharacterData = !!npc;
-      } else {
-        hasCharacterData = false;
-      }
+    } else if (message.characterName) {
+      displayName = message.characterName;  // 直接使用 AI 提供的名称
     } else {
       displayName = 'NPC';
-      hasCharacterData = false;
     }
   } else if (message.type === '记忆') {
     displayName = '记忆';
@@ -693,18 +677,18 @@ function renderMessage(message) {
     displayName = message.type;
   }
 
-  // 判断是否可点击（有完整的角色数据）
-  const isClickable = characterIndex !== undefined && hasCharacterData;
-  const clickHandler = isClickable ? `onclick="showCharacterFromMessage(${characterIndex})"` : '';
-  const clickableClass = isClickable ? 'clickable' : '';
-  const roleClass = `message-role ${clickableClass} ${isClickable ? '' : 'non-clickable'}`.trim();
-  const avatarClass = `message-avatar ${clickableClass} ${isClickable ? '' : 'non-clickable'}`.trim();
+  // 如果有角色索引，添加点击事件
+  let roleClass = 'message-role';
+  let roleOnClick = '';
+  if (characterIndex !== undefined && currentStoryData) {
+    roleClass += ' clickable-role';
+    roleOnClick = `onclick="showCharacterFromMessage(${characterIndex})"`;
+  }
 
   return `
     <div class="message message-${message.type}">
       <div class="message-header">
-        <span class="${avatarClass}" ${clickHandler}>👤</span>
-        <span class="${roleClass}" ${clickHandler}>${displayName}</span>
+        <span class="${roleClass}" ${roleOnClick}>${displayName}</span>
         <span class="message-time">${time}</span>
       </div>
       <div class="message-content">${message.content}</div>

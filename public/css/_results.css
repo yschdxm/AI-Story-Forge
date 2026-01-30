@@ -466,6 +466,8 @@
 .chat-info {
     font-size: 0.9em;
     color: var(--text-muted);
+    display: flex;
+    align-items: center;
 }
 
 /* 消息容器 - 弹性增长，内部滚动 */
@@ -603,14 +605,79 @@
 
 .message-header {
     display: flex;
-    justify-content: space-between;
+    align-items: center;
+    gap: var(--spacing-sm);
     margin-bottom: var(--spacing-sm);
     font-size: 0.85em;
     color: var(--text-muted);
 }
 
+.message-avatar {
+    font-size: 1.2em;
+    width: 24px;
+    height: 24px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(99, 179, 237, 0.15);
+    border-radius: 50%;
+    flex-shrink: 0;
+    cursor: pointer;
+    transition: all var(--transition-normal);
+}
+
+/* NPC头像hover - 绿色背景 */
+.message-NPC .message-avatar.clickable:hover {
+    background: rgba(72, 187, 120, 0.3);
+    transform: scale(1.1);
+}
+
+/* 主角头像hover - 粉色背景 */
+.message-主角 .message-avatar.clickable:hover {
+    background: rgba(246, 135, 179, 0.3);
+    transform: scale(1.1);
+}
+
+.message-avatar.non-clickable {
+    cursor: default;
+    opacity: 0.5;
+}
+
+.message-avatar.non-clickable:hover {
+    transform: none;
+    background: rgba(99, 179, 237, 0.15);
+}
+
 .message-role {
     font-weight: 600;
+    color: var(--gold);
+    flex: 0 0 auto;
+    cursor: pointer;
+    transition: all var(--transition-normal);
+    padding: 2px 8px;
+    border-radius: var(--radius-sm);
+    margin-left: 4px;
+}
+
+/* NPC名字hover - 绿色背景 */
+.message-NPC .message-role.clickable:hover {
+    background: rgba(72, 187, 120, 0.2);
+    color: #48bb78;
+}
+
+/* 主角名字hover - 粉色背景 */
+.message-主角 .message-role.clickable:hover {
+    background: rgba(246, 135, 179, 0.2);
+    color: var(--accent-pink);
+}
+
+.message-role.non-clickable {
+    cursor: default;
+    padding: 2px 8px;
+    margin-left: 4px;
+}
+
+.message-role.non-clickable:hover {
     color: var(--gold);
 }
 
