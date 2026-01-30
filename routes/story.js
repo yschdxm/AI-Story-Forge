@@ -223,6 +223,9 @@ router.post('/create', authenticateToken, async (req, res) => {
     }
 
     // 验证角色数量
+    if (characters.length < 2) {
+      return res.status(400).json({ success: false, error: '角色数量至少需要2个' });
+    }
     if (characters.length > 4) {
       return res.status(400).json({ success: false, error: '角色数量不能超过4个' });
     }
@@ -923,7 +926,7 @@ function buildSystemPrompt(story) {
   prompt += '   - **不要滥用长段旁白**：简短的动作可以省略，只在重要时刻使用旁白\n';
   prompt += '   - **示例**：\n';
   prompt += '     * 错误：NPC对话包含"(深棕色的头发微微晃动，语气冰冷) 带路？不，我不能。"\n';
-  prompt += '     * 正确：旁白描述动作，NPC对话只说"带路？不，我不能。"\n';
+  prompt += '     * 正确：旁白描述动作“深棕色的头发微微晃动，语气冰冷”，NPC对话只说"带路？不，我不能。"\n';
   prompt += '   - **常见需要旁白的情况**：\n';
   prompt += '     * 动作描写（深棕色的头发微微晃动、推开大门、拔出武器等）\n';
   prompt += '     * 神态描写（右眼的光芒收敛、微笑、皱眉、眼神变化等）\n';
@@ -934,6 +937,11 @@ function buildSystemPrompt(story) {
   prompt += '7. AI不能代替主角说话，主角只能由用户控制\n';
   prompt += '8. 返回语言为中文\n';
   prompt += '9. 必须使用JSON格式返回\n';
+  prompt += '10. **新角色添加规则**：\n';
+  prompt += '   - 如果需要引入新NPC角色，使用"newCharacter"类型\n';
+  prompt += '   - 必须提供完整的角色数据（name, archetype, setting, traits, appearance, personality, backstory, motivation, abilities, roleInStory）\n';
+  prompt += '   - 新角色数据会被自动保存到数据库，方便后续复用\n';
+  prompt += '   - 可以在newCharacter响应中包含角色的首次对话（content字段）\n';
 
   return prompt;
 }
@@ -952,8 +960,48 @@ function buildUserPrompt(story, content) {
   prompt += `AI需要决定哪个角色出场回应（可以是任何NPC，但不能是主角）。\n`;
   prompt += `AI可以一次回复多条对话，由不同角色说出。\n`;
   prompt += `\n`;
+  prompt += `## 🆕 新角色添加规则\n`;
+  prompt += `**如果AI想要引入新的NPC角色**：\n`;
+  prompt += `1. 在responses数组中添加新角色的完整数据\n`;
+  prompt += `2. 新角色数据必须包含完整的角色信息（与创建故事时相同）\n`;
+  prompt += `3. 新角色的type设为"newCharacter"，并提供完整的characterData字段\n`;
+  prompt += `4. 新角色的对话可以单独作为一条NPC响应，也可以包含在characterData中\n`;
+  prompt += `\n`;
   prompt += `## 📝 输出格式说明\n`;
   prompt += `**重要：动作、神态、语气必须用旁白，对话只包含纯文本**\n`;
+  prompt += `\n`;
+  prompt += `✅ **完整示例**（包含新角色添加）：\n`;
+  prompt += `\`\`\`json\n`;
+  prompt += `{\n`;
+  prompt += `  "responses": [\n`;
+  prompt += `    {\n`;
+  prompt += `      "type": "旁白",\n`;
+  prompt += `      "content": "一个神秘的身影从阴影中走出"\n`;
+  prompt += `    },\n`;
+  prompt += `    {\n`;
+  prompt += `      "type": "newCharacter",\n`;
+  prompt += `      "characterData": {\n`;
+  prompt += `        "name": "影刃",\n`;
+  prompt += `        "archetype": "刺客",\n`;
+  prompt += `        "setting": "来自暗影公会的精英刺客",\n`;
+  prompt += `        "traits": ["冷静", "致命", "沉默寡言"],\n`;
+  prompt += `        "appearance": "黑色紧身衣，蒙面，腰间挂着两把短刃",\n`;
+  prompt += `        "personality": "冷静沉着，行动果断，不轻易表露情感",\n`;
+  prompt += `        "backstory": "从小在暗影公会长大，接受了严格的刺客训练，擅长暗杀和潜行",\n`;
+  prompt += `        "motivation": "完成任务，维护公会的荣誉",\n`;
+  prompt += `        "abilities": ["潜行", "暗杀", "格斗", "投掷"],\n`;
+  prompt += `        "roleInStory": "神秘的盟友或敌人，为故事增添紧张感"\n`;
+  prompt += `      },\n`;
+  prompt += `      "content": "我叫影刃。看来你需要帮助。"\n`;
+  prompt += `    },\n`;
+  prompt += `    {\n`;
+  prompt += `      "type": "NPC",\n`;
+  prompt += `      "characterName": "赛琳娜",\n`;
+  prompt += `      "content": "你是谁？为什么会出现在这里？"\n`;
+  prompt += `    }\n`;
+  prompt += `  ]\n`;
+  prompt += `}\n`;
+  prompt += `\`\`\`\n`;
   prompt += `\n`;
   prompt += `❌ **错误示例**（不要这样做）：\n`;
   prompt += `\`\`\`json\n`;
@@ -963,23 +1011,6 @@ function buildUserPrompt(story, content) {
   prompt += `      "type": "NPC",\n`;
   prompt += `      "characterName": "赛琳娜",\n`;
   prompt += `      "content": "(深棕色的头发微微晃动，语气冰冷) 带路？不，我不能。"\n`;
-  prompt += `    }\n`;
-  prompt += `  ]\n`;
-  prompt += `}\n`;
-  prompt += `\`\`\`\n`;
-  prompt += `\n`;
-  prompt += `✅ **正确示例**（动作用旁白，对话是纯文本）：\n`;
-  prompt += `\`\`\`json\n`;
-  prompt += `{\n`;
-  prompt += `  "responses": [\n`;
-  prompt += `    {\n`;
-  prompt += `      "type": "旁白",\n`;
-  prompt += `      "content": "深棕色的头发微微晃动，右眼的光芒完全收敛，语气变得冰冷而直接"\n`;
-  prompt += `    },\n`;
-  prompt += `    {\n`;
-  prompt += `      "type": "NPC",\n`;
-  prompt += `      "characterName": "赛琳娜",\n`;
-  prompt += `      "content": "带路？不，我不能。我的存在依赖于'永恒网络'的记忆背景辐射，离开这片废墟，我就会像没有空气的火焰一样熄灭。"\n`;
   prompt += `    }\n`;
   prompt += `  ]\n`;
   prompt += `}\n`;
@@ -1017,19 +1048,36 @@ function buildUserPrompt(story, content) {
   prompt += `      "type": "NPC",\n`;
   prompt += `      "characterName": "角色名（必须填写，不能为空）",\n`;
   prompt += `      "content": "纯文本对话（必须填写，不能为空，不包含括号）"\n`;
+  prompt += `    },\n`;
+  prompt += `    {\n`;
+  prompt += `      "type": "newCharacter",  // 新增角色时使用\n`;
+  prompt += `      "characterData": {  // 完整的角色数据\n`;
+  prompt += `        "name": "角色名",\n`;
+  prompt += `        "archetype": "角色原型",\n`;
+  prompt += `        "setting": "角色背景/出身",\n`;
+  prompt += `        "traits": ["特质1", "特质2"],\n`;
+  prompt += `        "appearance": "外貌描述",\n`;
+  prompt += `        "personality": "性格描述",\n`;
+  prompt += `        "backstory": "背景故事",\n`;
+  prompt += `        "motivation": "动机/目标",\n`;
+  prompt += `        "abilities": ["能力1", "能力2"],\n`;
+  prompt += `        "roleInStory": "在故事中的作用"\n`;
+  prompt += `      },\n`;
+  prompt += `      "content": "角色的对话内容（可选）"\n`;
   prompt += `    }\n`;
   prompt += `  ]\n`;
   prompt += `}\n`;
   prompt += `\`\`\`\n\n`;
   prompt += `重要规则：\n`;
   prompt += `1. 必须返回JSON格式，包含responses数组\n`;
-  prompt += `2. type只能是"旁白"或"NPC"\n`;
+  prompt += `2. type只能是"旁白"、"NPC"或"newCharacter"\n`;
   prompt += `3. NPC对话必须包含characterName字段（不能为空）\n`;
   prompt += `4. 旁白不需要characterName字段，但必须有content字段（不能为空）\n`;
   prompt += `5. 不能代替主角说话（主角只能由用户控制）\n`;
   prompt += `6. NPC对话不能放在旁白里\n`;
   prompt += `7. **所有content字段都必须填写，不能为null或空字符串**\n`;
   prompt += `8. **动作、神态、语气必须用旁白，不要混在对话中**\n`;
+  prompt += `9. **新增角色时，使用newCharacter类型并提供完整的characterData**\n`;
 
   return prompt;
 }
@@ -1168,6 +1216,13 @@ function parseAIResponse(content) {
               characterName: response.characterName,
               content: response.content
             });
+          } else if (response.type === 'newCharacter' && response.characterData) {
+            // 新角色类型：包含完整的角色数据
+            results.push({
+              type: 'newCharacter',
+              characterData: response.characterData,
+              content: response.content || null
+            });
           }
         }
         return { success: true, responses: results, error: null };
@@ -1194,6 +1249,13 @@ function parseAIResponse(content) {
               type: 'NPC',
               characterName: response.characterName,
               content: response.content
+            });
+          } else if (response.type === 'newCharacter' && response.characterData) {
+            // 新角色类型：包含完整的角色数据
+            results.push({
+              type: 'newCharacter',
+              characterData: response.characterData,
+              content: response.content || null
             });
           }
         }
@@ -1368,6 +1430,74 @@ router.post('/:id/message', authenticateToken, async (req, res) => {
                 await saveMessage(story._id, {
                   type: 'NPC',
                   characterName: response.characterName,
+                  content: response.content,
+                  timestamp: new Date()
+                });
+              }
+            } else if (response.type === 'newCharacter') {
+              // 处理新角色（包含完整角色数据）
+              const charData = response.characterData;
+              const charName = charData.name || '未知角色';
+
+              // 检查是否已存在
+              const existingCharacterIndex = story.characters.findIndex(c => c.name === charName);
+
+              if (existingCharacterIndex === -1) {
+                console.log(`[Message] 检测到新角色: ${charName}，保存完整数据到History`);
+
+                // 1. 保存到History数据库
+                const newHistory = new History({
+                  userId: story.userId,
+                  toolType: 'character',
+                  content: `角色：${charName}\n原型：${charData.archetype || '未知'}\n背景：${charData.setting || '未知'}\n特质：${Array.isArray(charData.traits) ? charData.traits.join(', ') : '未知'}\n外貌：${charData.appearance || '未知'}\n性格：${charData.personality || '未知'}\n背景故事：${charData.backstory || '未知'}\n动机：${charData.motivation || '未知'}\n能力：${Array.isArray(charData.abilities) ? charData.abilities.join(', ') : '未知'}\n在故事中的作用：${charData.roleInStory || '未知'}`,
+                  inputParams: {
+                    archetype: charData.archetype,
+                    setting: charData.setting,
+                    traits: Array.isArray(charData.traits) ? charData.traits.join(', ') : charData.traits
+                  },
+                  structuredData: {
+                    character: {
+                      name: charData.name,
+                      archetype: charData.archetype,
+                      setting: charData.setting,
+                      traits: Array.isArray(charData.traits) ? charData.traits : [charData.traits].filter(Boolean),
+                      appearance: charData.appearance,
+                      personality: charData.personality,
+                      backstory: charData.backstory,
+                      motivation: charData.motivation,
+                      abilities: Array.isArray(charData.abilities) ? charData.abilities : [charData.abilities].filter(Boolean),
+                      roleInStory: charData.roleInStory
+                    }
+                  },
+                  isFavorite: false
+                });
+
+                const savedHistory = await newHistory.save();
+                console.log(`[Message] 新角色已保存到History，ID: ${savedHistory._id}`);
+
+                // 2. 添加到故事的角色列表中
+                story.characters.push({
+                  role: 'NPC',
+                  historyId: savedHistory._id,
+                  name: charName,
+                  archetype: charData.archetype,
+                  setting: charData.setting,
+                  traits: Array.isArray(charData.traits) ? charData.traits : [charData.traits].filter(Boolean),
+                  appearance: charData.appearance,
+                  personality: charData.personality,
+                  backstory: charData.backstory,
+                  motivation: charData.motivation,
+                  abilities: Array.isArray(charData.abilities) ? charData.abilities : [charData.abilities].filter(Boolean),
+                  roleInStory: charData.roleInStory
+                });
+                await story.save();
+              }
+
+              // 如果有对话内容，保存为NPC对话
+              if (response.content) {
+                await saveMessage(story._id, {
+                  type: 'NPC',
+                  characterName: charName,
                   content: response.content,
                   timestamp: new Date()
                 });
