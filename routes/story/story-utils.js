@@ -198,6 +198,7 @@ ${story.plot.themes?.length ? `**主题**：${story.plot.themes.join(', ')}\n` :
 - 只生成一个NPC的对话即可
 - 必须返回JSON格式
 - **每个字段都必须填写，不能为null或空**
+- **characterName必须输出完整的角色名称（包括姓和名），不能省略或缩写**
 - NPC对话不能放在旁白里
 - 不能代替主角说话
 - 返回语言为中文
@@ -305,9 +306,20 @@ function buildSystemPrompt(story) {
   prompt += '9. 必须使用JSON格式返回\n';
   prompt += '10. **新角色添加规则**：\n';
   prompt += '   - 如果需要引入新NPC角色，使用\"newCharacter\"类型\n';
-  prompt += '   - 必须提供完整的角色数据（name, archetype, setting, traits, appearance, personality, backstory, motivation, abilities, roleInStory）\n';
+  prompt += '   - **必须提供完整的角色数据**（所有字段都不能为空）：\n';
+  prompt += '     * name: 角色名称（必须完整，如\"李明\"、\"赛琳娜·月影\"）\n';
+  prompt += '     * archetype: 角色原型（如：英雄、反派、导师等）\n';
+  prompt += '     * setting: 角色背景/出身\n';
+  prompt += '     * traits: 特质数组（如[\"冷静\", \"勇敢\"]）\n';
+  prompt += '     * appearance: 外貌描述\n';
+  prompt += '     * personality: 性格描述\n';
+  prompt += '     * backstory: 背景故事\n';
+  prompt += '     * motivation: 动机/目标\n';
+  prompt += '     * abilities: 能力数组\n';
+  prompt += '     * roleInStory: 在故事中的作用\n';
   prompt += '   - 新角色数据会被自动保存到数据库，方便后续复用\n';
   prompt += '   - 可以在newCharacter响应中包含角色的首次对话（content字段）\n';
+  prompt += '   - **新角色名称必须完整**：必须包含姓和名（如\"李明\"、\"赛琳娜·月影\"），不能只用单个汉字\n';
 
   return prompt;
 }
@@ -330,8 +342,20 @@ function buildUserPrompt(story, content) {
   prompt += `**如果AI想要引入新的NPC角色**：\n`;
   prompt += `1. 在responses数组中添加新角色的完整数据\n`;
   prompt += `2. 新角色数据必须包含完整的角色信息（与创建故事时相同）\n`;
-  prompt += `3. 新角色的type设为"newCharacter"，并提供完整的characterData字段\n`;
+  prompt += `3. 新角色的type设为\"newCharacter\"，并提供完整的characterData字段\n`;
   prompt += `4. 新角色的对话可以单独作为一条NPC响应，也可以包含在characterData中\n`;
+  prompt += `5. **必须提供完整的角色数据**（所有字段都不能为空）：\n`;
+  prompt += `   - name: 角色名称（必须完整，如\"李明\"、\"赛琳娜·月影\"）\n`;
+  prompt += `   - archetype: 角色原型（如：英雄、反派、导师等）\n`;
+  prompt += `   - setting: 角色背景/出身\n`;
+  prompt += `   - traits: 特质数组（如[\"冷静\", \"勇敢\"]）\n`;
+  prompt += `   - appearance: 外貌描述\n`;
+  prompt += `   - personality: 性格描述\n`;
+  prompt += `   - backstory: 背景故事\n`;
+  prompt += `   - motivation: 动机/目标\n`;
+  prompt += `   - abilities: 能力数组\n`;
+  prompt += `   - roleInStory: 在故事中的作用\n`;
+  prompt += `6. **新角色名称必须完整**：必须包含姓和名（如\"李明\"、\"赛琳娜·月影\"），不能只用单个汉字\n`;
   prompt += `\n`;
   prompt += `## 📝 输出格式说明\n`;
   prompt += `**重要：动作、神态、语气必须用旁白，对话只包含纯文本**\n`;
@@ -381,6 +405,18 @@ function buildUserPrompt(story, content) {
   prompt += `  ]\n`;
   prompt += `}\n`;
   prompt += `\`\`\`\n`;
+  prompt += `\n`;
+  prompt += `❌ **名称错误示例**（会导致驳回）：\n`;
+  prompt += `- characterName: \"明\"（只有单个汉字，必须是\"李明\"或\"张明\"）\n`;
+  prompt += `- characterName: \"娜\"（只有单个汉字，必须是\"赛琳娜\"或\"安娜\"）\n`;
+  prompt += `- characterName: \"影\"（只有单个汉字，必须是\"影刃\"或\"暗影\"）\n`;
+  prompt += `- characterName: \"未知\"（必须是具体的完整姓名）\n`;
+  prompt += `- characterData.name: \"X\"（太短，必须是完整姓名）\n`;
+  prompt += `\n`;
+  prompt += `❌ **信息不完整示例**（会导致驳回）：\n`;
+  prompt += `- characterData缺少字段：archetype, setting, traits, appearance, personality, backstory, motivation, abilities, roleInStory\n`;
+  prompt += `- characterData字段为空字符串或null\n`;
+  prompt += `- characterData.traits或characterData.abilities为空数组\n`;
   prompt += `\n`;
   prompt += `## 📝 旁白使用指南\n`;
   prompt += `**动作、神态、语气必须用旁白，不要混在对话中**\n`;
@@ -438,12 +474,15 @@ function buildUserPrompt(story, content) {
   prompt += `1. 必须返回JSON格式，包含responses数组\n`;
   prompt += `2. type只能是"旁白"、"NPC"或"newCharacter"\n`;
   prompt += `3. NPC对话必须包含characterName字段（不能为空）\n`;
-  prompt += `4. 旁白不需要characterName字段，但必须有content字段（不能为空）\n`;
-  prompt += `5. 不能代替主角说话（主角只能由用户控制）\n`;
-  prompt += `6. NPC对话不能放在旁白里\n`;
-  prompt += `7. **所有content字段都必须填写，不能为null或空字符串**\n`;
-  prompt += `8. **动作、神态、语气必须用旁白，不要混在对话中**\n`;
-  prompt += `9. **新增角色时，使用newCharacter类型并提供完整的characterData**\n`;
+  prompt += `4. **characterName必须输出完整的角色名称（包括姓和名），不能省略或缩写**\n`;
+  prompt += `5. 旁白不需要characterName字段，但必须有content字段（不能为空）\n`;
+  prompt += `6. 不能代替主角说话（主角只能由用户控制）\n`;
+  prompt += `7. NPC对话不能放在旁白里\n`;
+  prompt += `8. **所有content字段都必须填写，不能为null或空字符串**\n`;
+  prompt += `9. **动作、神态、语气必须用旁白，不要混在对话中**\n`;
+  prompt += `10. **新增角色时，使用newCharacter类型并提供完整的characterData**\n`;
+  prompt += `11. **newCharacter的characterData必须包含所有字段**：name, archetype, setting, traits, appearance, personality, backstory, motivation, abilities, roleInStory（所有字段不能为空）\n`;
+  prompt += `12. **信息不完整的角色会被驳回**，AI需要重新生成完整的角色数据\n`;
 
   return prompt;
 }
@@ -475,11 +514,14 @@ function parseAIResponse(content) {
             });
           } else if (response.type === 'newCharacter' && response.characterData) {
             // 新角色类型：包含完整的角色数据
+            console.log('[Parse] 检测到newCharacter响应，characterData:', JSON.stringify(response.characterData, null, 2));
             results.push({
               type: 'newCharacter',
               characterData: response.characterData,
               content: response.content || null
             });
+          } else if (response.type === 'newCharacter') {
+            console.log('[Parse] newCharacter类型但缺少characterData字段，响应内容:', JSON.stringify(response, null, 2));
           }
         }
         return { success: true, responses: results, error: null };
@@ -509,11 +551,14 @@ function parseAIResponse(content) {
             });
           } else if (response.type === 'newCharacter' && response.characterData) {
             // 新角色类型：包含完整的角色数据
+            console.log('[Parse] 检测到newCharacter响应，characterData:', JSON.stringify(response.characterData, null, 2));
             results.push({
               type: 'newCharacter',
               characterData: response.characterData,
               content: response.content || null
             });
+          } else if (response.type === 'newCharacter') {
+            console.log('[Parse] newCharacter类型但缺少characterData字段，响应内容:', JSON.stringify(response, null, 2));
           }
         }
         return { success: true, responses: results, error: null };
@@ -576,6 +621,111 @@ async function saveMessage(storyId, messageData) {
   await story.save();
 }
 
+/**
+ * 验证角色名称是否完整
+ * 规则：
+ * 1. 名称不能为空
+ * 2. 名称不能只包含单个字符（如"明"、"娜"）
+ * 3. 名称长度应该在2-10个字符之间
+ * 4. 不能包含特殊字符（...、？、?）
+ * @param {string} name - 角色名称
+ * @returns {object} { valid: boolean, reason: string|null }
+ */
+function validateCharacterName(name) {
+  if (!name || typeof name !== 'string') {
+    return { valid: false, reason: '角色名称不能为空' };
+  }
+
+  const trimmedName = name.trim();
+  if (trimmedName.length === 0) {
+    return { valid: false, reason: '角色名称不能为空' };
+  }
+
+  // 检查是否包含特殊字符或不完整格式
+  if (trimmedName.includes('...') || trimmedName.includes('？') || trimmedName.includes('?')) {
+    return { valid: false, reason: `角色名称"${trimmedName}"包含不完整字符` };
+  }
+
+  return { valid: true, reason: null };
+}
+
+/**
+ * 验证新角色的完整信息是否齐全
+ * 规则：必须包含所有必需字段
+ * @param {object} characterData - 角色数据对象
+ * @returns {object} { valid: boolean, reason: string|null, missingFields: array }
+ */
+function validateCharacterData(characterData) {
+  if (!characterData || typeof characterData !== 'object') {
+    return { valid: false, reason: '角色数据不能为空', missingFields: [] };
+  }
+
+  const requiredFields = [
+    'name',
+    'archetype',
+    'setting',
+    'traits',
+    'appearance',
+    'personality',
+    'backstory',
+    'motivation',
+    'abilities',
+    'roleInStory'
+  ];
+
+  const missingFields = [];
+
+  console.log('[Validate] 开始验证角色数据，检查以下字段:');
+  for (const field of requiredFields) {
+    const value = characterData[field];
+    const valueType = Array.isArray(value) ? 'array' : typeof value;
+    const valuePreview = Array.isArray(value) ? `[${value.length} items]` : (typeof value === 'string' ? `"${value.substring(0, 50)}${value.length > 50 ? '...' : ''}"` : value);
+    console.log(`[Validate]   ${field}: ${valueType} = ${valuePreview}`);
+
+    // 检查字段是否存在
+    if (value === undefined || value === null) {
+      missingFields.push(field);
+      console.log(`[Validate]   -> 缺失或为null`);
+      continue;
+    }
+
+    // 检查字段是否为空字符串
+    if (typeof value === 'string' && value.trim() === '') {
+      missingFields.push(field);
+      console.log(`[Validate]   -> 空字符串`);
+      continue;
+    }
+
+    // 检查数组字段是否为空
+    if (Array.isArray(value) && value.length === 0) {
+      missingFields.push(field);
+      console.log(`[Validate]   -> 空数组`);
+      continue;
+    }
+  }
+
+  if (missingFields.length > 0) {
+    console.log(`[Validate] 验证失败，缺少字段: ${missingFields.join(', ')}`);
+    return {
+      valid: false,
+      reason: `角色信息不完整，缺少以下字段：${missingFields.join(', ')}`,
+      missingFields: missingFields
+    };
+  }
+
+  // 额外验证：名称不能只包含单个字符
+  const nameValidation = validateCharacterName(characterData.name);
+  if (!nameValidation.valid) {
+    return {
+      valid: false,
+      reason: `角色名称验证失败：${nameValidation.reason}`,
+      missingFields: ['name']
+    };
+  }
+
+  return { valid: true, reason: null, missingFields: [] };
+}
+
 module.exports = {
   getUserIdFromToken,
   buildStoryDataPrompt,
@@ -583,5 +733,7 @@ module.exports = {
   buildSystemPrompt,
   buildUserPrompt,
   parseAIResponse,
-  saveMessage
+  saveMessage,
+  validateCharacterName,
+  validateCharacterData
 };

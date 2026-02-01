@@ -248,6 +248,20 @@
     margin-bottom: var(--spacing-md);
     padding-bottom: var(--spacing-sm);
     border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    gap: var(--spacing-sm);
+}
+
+/* 历史记录徽章 */
+.history-badge {
+    display: inline-block;
+    padding: 2px 8px;
+    background: rgba(72, 187, 120, 0.2);
+    color: #48bb78;
+    border: 1px solid #48bb78;
+    border-radius: var(--radius-sm);
+    font-size: 0.75em;
+    font-weight: 600;
+    white-space: nowrap;
 }
 
 .history-tool {
@@ -403,6 +417,60 @@
     font-size: 0.85em;
     color: var(--text-light);
     border: 1px solid rgba(107, 70, 193, 0.3);
+}
+
+/* 历史记录图片显示 */
+.history-detail-images {
+    background: rgba(0, 0, 0, 0.3);
+    padding: var(--spacing-lg);
+    border-radius: var(--radius-lg);
+    margin-bottom: var(--spacing-lg);
+}
+
+.history-detail-images h4 {
+    color: var(--gold);
+    margin-bottom: var(--spacing-lg);
+    font-size: 1.1em;
+}
+
+.character-images-container {
+    display: flex;
+    gap: var(--spacing-lg);
+    flex-wrap: wrap;
+}
+
+.image-item {
+    flex: 1;
+    min-width: 200px;
+    background: rgba(0, 0, 0, 0.3);
+    padding: var(--spacing-md);
+    border-radius: var(--radius-md);
+    border: 1px solid var(--glass-border);
+}
+
+.image-item h5 {
+    color: var(--accent-blue);
+    margin: 0 0 var(--spacing-sm) 0;
+    font-size: 0.9em;
+    font-weight: 600;
+}
+
+.history-portrait-image {
+    width: 100%;
+    height: auto;
+    border-radius: var(--radius-md);
+    display: block;
+    max-height: 400px;
+    object-fit: cover;
+}
+
+.history-avatar-image {
+    width: 128px;
+    height: 128px;
+    border-radius: var(--radius-md);
+    display: block;
+    object-fit: cover;
+    margin: 0 auto;
 }
 
 /* 空状态提示 */

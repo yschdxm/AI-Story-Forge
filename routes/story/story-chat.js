@@ -2,9 +2,11 @@ const express = require('express');
 const router = express.Router();
 const History = require('../../models/History');
 const Story = require('../../models/Story');
+const User = require('../../models/User');
 const { authenticateToken } = require('../../middleware/auth');
 const { callAIStream, getModelConfigFromRequest } = require('../../services/aiService');
-const { buildSystemPrompt, buildUserPrompt, parseAIResponse, saveMessage } = require('./story-utils');
+const { buildSystemPrompt, buildUserPrompt, parseAIResponse, saveMessage, validateCharacterName, validateCharacterData } = require('./story-utils');
+const { generateAndDownloadImages } = require('../../services/imageService');
 
 /**
  * 辅助函数：检查并执行记忆压缩
@@ -186,6 +188,86 @@ router.post('/:id/message', authenticateToken, async (req, res) => {
             throw new Error(`JSON解析失败，已重试${maxRetries}次: ${parseResult.error}`);
           }
 
+          // 验证角色信息是否完整
+          console.log(`[Message] 开始验证角色信息，响应数量: ${parseResult.responses.length}`);
+          for (const response of parseResult.responses) {
+            console.log(`[Message] 检查响应类型: ${response.type}`);
+            if (response.type === 'NPC') {
+              // NPC类型：只验证名称
+              const nameValidation = validateCharacterName(response.characterName);
+              console.log(`[Message] NPC名称验证: ${response.characterName}, 结果: ${nameValidation.valid ? '通过' : '失败 - ' + nameValidation.reason}`);
+
+              if (!nameValidation.valid && retryCount < maxRetries) {
+                retryCount++;
+                console.log(`[Message] NPC名称验证失败: ${nameValidation.reason}，第${retryCount}次重试...`);
+
+                // 等待一小段时间后重试
+                await new Promise(resolve => setTimeout(resolve, 1000 * retryCount));
+
+                // 重新调用AI
+                await callAIWithRetry();
+                return;
+              } else if (!nameValidation.valid && retryCount >= maxRetries) {
+                // 达到最大重试次数，仍然验证失败
+                console.log(`[Message] NPC名称验证失败，已重试${maxRetries}次: ${nameValidation.reason}`);
+
+                // 处理其他有效的响应（旁白等）
+                for (const resp of parseResult.responses) {
+                  if (resp.type === '旁白') {
+                    await saveMessage(story._id, {
+                      type: '旁白',
+                      content: resp.content,
+                      timestamp: new Date()
+                    });
+                  }
+                }
+
+                throw new Error(`NPC名称验证失败，已重试${maxRetries}次: ${nameValidation.reason}`);
+              }
+            } else if (response.type === 'newCharacter') {
+              // newCharacter类型：验证完整的角色数据
+              console.log(`[Message] 开始验证新角色数据，characterData:`, JSON.stringify(response.characterData, null, 2));
+              const charDataValidation = validateCharacterData(response.characterData);
+              console.log(`[Message] 新角色验证结果: ${charDataValidation.valid ? '通过' : '失败 - ' + charDataValidation.reason}`);
+
+              if (!charDataValidation.valid && retryCount < maxRetries) {
+                retryCount++;
+                console.log(`[Message] 新角色信息验证失败: ${charDataValidation.reason}，第${retryCount}次重试...`);
+
+                // 等待一小段时间后重试
+                await new Promise(resolve => setTimeout(resolve, 1000 * retryCount));
+
+                // 重新调用AI
+                await callAIWithRetry();
+                return;
+              } else if (!charDataValidation.valid && retryCount >= maxRetries) {
+                // 达到最大重试次数，仍然验证失败
+                console.log(`[Message] 新角色信息验证失败，已重试${maxRetries}次: ${charDataValidation.reason}`);
+
+                // 处理其他有效的响应（旁白等）
+                for (const resp of parseResult.responses) {
+                  if (resp.type === '旁白') {
+                    await saveMessage(story._id, {
+                      type: '旁白',
+                      content: resp.content,
+                      timestamp: new Date()
+                    });
+                  } else if (resp.type === 'NPC') {
+                    // 只保存NPC对话，不创建新角色
+                    await saveMessage(story._id, {
+                      type: 'NPC',
+                      characterName: resp.characterName,
+                      content: resp.content,
+                      timestamp: new Date()
+                    });
+                  }
+                }
+
+                throw new Error(`新角色信息验证失败，已重试${maxRetries}次: ${charDataValidation.reason}`);
+              }
+            }
+          }
+
           // 解析成功，处理每个响应
           for (const response of parseResult.responses) {
             if (response.type === '旁白') {
@@ -241,6 +323,54 @@ router.post('/:id/message', authenticateToken, async (req, res) => {
               if (existingCharacterIndex === -1) {
                 console.log(`[Message] 检测到新角色: ${charName}，保存完整数据到History`);
 
+                // 构建角色数据对象
+                const characterInfo = {
+                  name: charData.name,
+                  archetype: charData.archetype,
+                  setting: charData.setting,
+                  traits: Array.isArray(charData.traits) ? charData.traits : [charData.traits].filter(Boolean),
+                  appearance: charData.appearance,
+                  personality: charData.personality,
+                  backstory: charData.backstory,
+                  motivation: charData.motivation,
+                  abilities: Array.isArray(charData.abilities) ? charData.abilities : [charData.abilities].filter(Boolean),
+                  roleInStory: charData.roleInStory
+                };
+
+                // 生成角色图片（立绘 + 头像）
+                // 注意：图片生成是耗时操作（可能需要 10-30 秒）
+                // 我们在生成完成前不会发送完成信号给前端
+                let portraitImage = null;
+                let avatarImage = null;
+                let portraitUrl = null;
+                let avatarUrl = null;
+
+                try {
+                  const user = await User.findById(story.userId);
+                  const doubaoConfig = user?.doubaoConfig || {};
+
+                  // 使用默认配置（头像使用seedream-4.5，因为doubao-seededit-3.0-i2i已下线）
+                  const imageConfig = {
+                    apiKey: doubaoConfig.apiKey || '8111a62f-0f7c-42f2-ba06-3f52201ac62f',
+                    baseUrl: doubaoConfig.baseUrl || 'https://ark.cn-beijing.volces.com/api/v3',
+                    portraitModel: doubaoConfig.portraitModel || 'doubao-seedream-4-5-251128',
+                    avatarModel: doubaoConfig.avatarModel || 'doubao-seedream-4-5-251128'
+                  };
+
+                  console.log(`[Message] 开始为新角色 ${charName} 生成图片...`);
+                  const images = await generateAndDownloadImages(characterInfo, imageConfig);
+
+                  portraitImage = images.portraitBase64;
+                  avatarImage = images.avatarBase64;
+                  portraitUrl = images.portraitUrl;
+                  avatarUrl = images.avatarUrl;
+
+                  console.log(`[Message] 新角色 ${charName} 图片生成完成`);
+                } catch (imgError) {
+                  console.error(`[Message] 生成新角色图片失败:`, imgError.message);
+                  // 图片生成失败不影响角色保存
+                }
+
                 // 1. 保存到History数据库
                 const newHistory = new History({
                   userId: story.userId,
@@ -252,26 +382,20 @@ router.post('/:id/message', authenticateToken, async (req, res) => {
                     traits: Array.isArray(charData.traits) ? charData.traits.join(', ') : charData.traits
                   },
                   structuredData: {
-                    character: {
-                      name: charData.name,
-                      archetype: charData.archetype,
-                      setting: charData.setting,
-                      traits: Array.isArray(charData.traits) ? charData.traits : [charData.traits].filter(Boolean),
-                      appearance: charData.appearance,
-                      personality: charData.personality,
-                      backstory: charData.backstory,
-                      motivation: charData.motivation,
-                      abilities: Array.isArray(charData.abilities) ? charData.abilities : [charData.abilities].filter(Boolean),
-                      roleInStory: charData.roleInStory
-                    }
+                    character: characterInfo
                   },
-                  isFavorite: false
+                  isFavorite: false,
+                  // 保存图片数据
+                  portraitImage,
+                  avatarImage,
+                  portraitUrl,
+                  avatarUrl
                 });
 
                 const savedHistory = await newHistory.save();
                 console.log(`[Message] 新角色已保存到History，ID: ${savedHistory._id}`);
 
-                // 2. 添加到故事的角色列表中
+                // 2. 添加到故事的角色列表中（包含图片）
                 story.characters.push({
                   role: 'NPC',
                   historyId: savedHistory._id,
@@ -284,7 +408,12 @@ router.post('/:id/message', authenticateToken, async (req, res) => {
                   backstory: charData.backstory,
                   motivation: charData.motivation,
                   abilities: Array.isArray(charData.abilities) ? charData.abilities : [charData.abilities].filter(Boolean),
-                  roleInStory: charData.roleInStory
+                  roleInStory: charData.roleInStory,
+                  // 保存图片数据
+                  portraitImage,
+                  avatarImage,
+                  portraitUrl,
+                  avatarUrl
                 });
                 await story.save();
               }

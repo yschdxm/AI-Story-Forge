@@ -79,6 +79,10 @@ router.get('/list', authenticateToken, async (req, res) => {
         structuredData: h.structuredData,
         tags: h.tags,
         isFavorite: h.isFavorite,
+        portraitImage: h.portraitImage,
+        avatarImage: h.avatarImage,
+        portraitUrl: h.portraitUrl,
+        avatarUrl: h.avatarUrl,
         createdAt: h.createdAt
       })),
       pagination: {
@@ -117,6 +121,10 @@ router.get('/:id', authenticateToken, async (req, res) => {
         tags: history.tags,
         isFavorite: history.isFavorite,
         metadata: history.metadata,
+        portraitImage: history.portraitImage,
+        avatarImage: history.avatarImage,
+        portraitUrl: history.portraitUrl,
+        avatarUrl: history.avatarUrl,
         createdAt: history.createdAt
       }
     });

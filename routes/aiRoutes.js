@@ -6,6 +6,7 @@ const User = require('../models/User');
 const History = require('../models/History');
 const { JWT_SECRET } = require('../middleware/auth');
 const { callAIStream, getModelConfigFromRequest } = require('../services/aiService');
+const { generateAndDownloadImages } = require('../services/imageService');
 
 /**
  * 从JWT获取用户
@@ -299,6 +300,38 @@ async function saveHistoryWithStructured(req, toolType, content, inputParams, st
 
     const history = new History(historyData);
     await history.save();
+
+    // 如果是角色生成，同时生成图片
+    if (toolType === 'character' && structuredData) {
+      try {
+        console.log('[History] 开始生成角色图片...');
+
+        // 使用默认配置（头像使用seedream-4.5，因为doubao-seededit-3.0-i2i已下线）
+        const imageConfig = {
+          apiKey: user.doubaoConfig?.apiKey || '8111a62f-0f7c-42f2-ba06-3f52201ac62f',
+          baseUrl: user.doubaoConfig?.baseUrl || 'https://ark.cn-beijing.volces.com/api/v3',
+          portraitModel: user.doubaoConfig?.portraitModel || 'doubao-seedream-4-5-251128',
+          avatarModel: user.doubaoConfig?.avatarModel || 'doubao-seedream-4-5-251128'
+        };
+
+        const { portraitBase64, avatarBase64, portraitUrl, avatarUrl } = await generateAndDownloadImages(
+          structuredData,
+          imageConfig
+        );
+
+        // 更新历史记录，添加图片数据
+        history.portraitImage = portraitBase64;
+        history.avatarImage = avatarBase64;
+        history.portraitUrl = portraitUrl;
+        history.avatarUrl = avatarUrl;
+        await history.save();
+
+        console.log('[History] 角色图片生成完成');
+      } catch (imgError) {
+        console.warn('[History] 生成角色图片失败:', imgError.message);
+        // 图片生成失败不影响历史记录保存
+      }
+    }
   } catch (saveError) {
     console.warn('保存历史记录失败:', saveError.message);
   }
@@ -550,6 +583,82 @@ router.post('/generate-names', async (req, res) => {
     if (!res.headersSent) {
       res.json({ success: false, error: error.message });
     }
+  }
+});
+
+// API路由 - 为历史记录中的角色生成图片
+router.post('/generate-character-images/:historyId', async (req, res) => {
+  try {
+    const { historyId } = req.params;
+
+    // 获取历史记录
+    const history = await History.findById(historyId);
+    if (!history) {
+      return res.status(404).json({ success: false, error: '历史记录不存在' });
+    }
+
+    // 验证是否是角色类型
+    if (history.toolType !== 'character') {
+      return res.status(400).json({ success: false, error: '该历史记录不是角色类型' });
+    }
+
+    // 检查是否已经有图片
+    if (history.portraitImage && history.avatarImage) {
+      return res.json({
+        success: true,
+        message: '角色已有图片',
+        portraitUrl: history.portraitUrl,
+        avatarUrl: history.avatarUrl
+      });
+    }
+
+    // 获取用户配置
+    const user = await getUserFromRequest(req);
+    if (!user) {
+      return res.status(401).json({ success: false, error: '未授权' });
+    }
+
+    // 获取结构化数据
+    const characterData = history.structuredData?.character;
+    if (!characterData) {
+      return res.status(400).json({ success: false, error: '角色数据不完整' });
+    }
+
+    console.log('[Generate Images] 开始生成角色图片...');
+
+    // 使用默认配置
+    const imageConfig = {
+      apiKey: user.doubaoConfig?.apiKey || '8111a62f-0f7c-42f2-ba06-3f52201ac62f',
+      baseUrl: user.doubaoConfig?.baseUrl || 'https://ark.cn-beijing.volces.com/api/v3',
+      portraitModel: user.doubaoConfig?.portraitModel || 'doubao-seedream-4-5-251128',
+      avatarModel: user.doubaoConfig?.avatarModel || 'doubao-seededit-3-0-i2i-250628'
+    };
+
+    // 生成图片
+    const { portraitBase64, avatarBase64, portraitUrl, avatarUrl } = await generateAndDownloadImages(
+      characterData,
+      imageConfig
+    );
+
+    // 更新历史记录
+    history.portraitImage = portraitBase64;
+    history.avatarImage = avatarBase64;
+    history.portraitUrl = portraitUrl;
+    history.avatarUrl = avatarUrl;
+    await history.save();
+
+    console.log('[Generate Images] 角色图片生成完成');
+
+    res.json({
+      success: true,
+      message: '图片生成成功',
+      portraitUrl,
+      avatarUrl
+    });
+
+  } catch (error) {
+    console.error('生成角色图片失败:', error);
+    res.status(500).json({ success: false, error: error.message });
   }
 });
 

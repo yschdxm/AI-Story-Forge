@@ -47,6 +47,28 @@ const userSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.Mixed,
     default: null
   },
+  // 豆包AI配置（用于图片生成）
+  doubaoConfig: {
+    apiKey: {
+      type: String,
+      default: '8111a62f-0f7c-42f2-ba06-3f52201ac62f'
+    },
+    // 立绘生成模型配置
+    portraitModel: {
+      type: String,
+      default: 'doubao-seedream-4-5-251128'
+    },
+    // 头像裁切模型配置（使用seedream-4.5，因为doubao-seededit-3.0-i2i已下线）
+    avatarModel: {
+      type: String,
+      default: 'doubao-seedream-4-5-251128'
+    },
+    // API基础URL
+    baseUrl: {
+      type: String,
+      default: 'https://ark.cn-beijing.volces.com/api/v3'
+    }
+  },
   createdAt: {
     type: Date,
     default: Date.now

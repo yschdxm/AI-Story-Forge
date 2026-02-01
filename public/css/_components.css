@@ -577,6 +577,19 @@ input:checked + .slider:before {
     transform: translateY(0);
 }
 
+/* 主按钮（小尺寸） */
+.btn-primary.btn-small {
+    padding: var(--spacing-sm) var(--spacing-md);
+    font-size: 0.85em;
+    background: linear-gradient(135deg, var(--primary-purple), var(--accent-pink));
+    border: none;
+    color: white;
+}
+
+.btn-primary.btn-small:hover {
+    background: linear-gradient(135deg, var(--accent-pink), var(--primary-purple));
+}
+
 /* 响应式调整 */
 @media (max-width: 768px) {
     .setting-item {

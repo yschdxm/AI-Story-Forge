@@ -791,17 +791,25 @@ async function loadHistory() {
             const structuredPreview = generateStructuredPreview(item);
             const preview = structuredPreview || (item.content.substring(0, 100) + (item.content.length > 100 ? '...' : ''));
 
+            // 检查是否有图片
+            const hasImages = item.portraitImage && item.avatarImage;
+            const generateImageBtn = item.toolType === 'character' && !hasImages
+                ? `<button onclick="generateCharacterImages('${item.id}')" class="btn-small btn-primary">🎨 生成图片</button>`
+                : '';
+
             return `
 <div class="history-item show" data-id="${item.id}">
     <div class="history-header">
         <span class="history-tool">${toolName}</span>
         <span class="history-date">${date}</span>
+        ${hasImages ? '<span class="history-badge">🖼️ 有图片</span>' : ''}
     </div>
     <div class="history-content">
         ${preview}
     </div>
     <div class="history-actions">
         <button onclick="viewHistory('${item.id}')" class="btn-small">查看</button>
+        ${generateImageBtn}
         <button onclick="deleteHistory('${item.id}')" class="btn-small btn-danger">删除</button>
         <button onclick="toggleFavorite('${item.id}', ${item.isFavorite})" class="btn-small btn-warning">
             ${item.isFavorite ? '⭐ 取消收藏' : '☆ 收藏'}
@@ -817,6 +825,46 @@ async function loadHistory() {
 
     } catch (error) {
         showNotification('获取历史记录失败: ' + error.message, 'error');
+    }
+}
+
+/**
+ * 为角色生成图片
+ */
+async function generateCharacterImages(historyId) {
+    const token = localStorage.getItem('token');
+    if (!token) {
+        showNotification('请先登录', 'error');
+        return;
+    }
+
+    showLoading(true, 'ai-creating');
+
+    try {
+        const response = await fetch(`/api/generate-character-images/${historyId}`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
+        });
+
+        const result = await response.json();
+
+        hideLoading();
+
+        if (!result.success) {
+            throw new Error(result.error);
+        }
+
+        showNotification('图片生成成功！', 'success');
+
+        // 重新加载历史记录列表
+        setTimeout(() => loadHistory(), 500);
+
+    } catch (error) {
+        hideLoading();
+        showNotification('生成图片失败: ' + error.message, 'error');
     }
 }
 
@@ -843,6 +891,37 @@ async function viewHistory(id) {
         // 生成结构化详情
         const structuredDetail = generateStructuredDetail(item);
 
+        // 生成图片HTML（如果有）
+        let imagesHtml = '';
+        if (item.toolType === 'character' && (item.portraitImage || item.portraitUrl)) {
+            const portraitSrc = item.portraitImage
+                ? `data:image/jpeg;base64,${item.portraitImage}`
+                : item.portraitUrl;
+            const avatarSrc = item.avatarImage
+                ? `data:image/jpeg;base64,${item.avatarImage}`
+                : item.avatarUrl;
+
+            imagesHtml = `
+                <div class="history-detail-images">
+                    <h4>角色图片：</h4>
+                    <div class="character-images-container">
+                        ${portraitSrc ? `
+                            <div class="image-item">
+                                <h5>立绘 (1440×2560)</h5>
+                                <img src="${portraitSrc}" alt="角色立绘" class="history-portrait-image">
+                            </div>
+                        ` : ''}
+                        ${avatarSrc ? `
+                            <div class="image-item">
+                                <h5>头像 (512×512)</h5>
+                                <img src="${avatarSrc}" alt="角色头像" class="history-avatar-image">
+                            </div>
+                        ` : ''}
+                    </div>
+                </div>
+            `;
+        }
+
         // 显示详情弹窗
         const modal = document.createElement('div');
         modal.className = 'modal-overlay';
@@ -859,6 +938,7 @@ async function viewHistory(id) {
             <p><strong>收藏状态：</strong>${item.isFavorite ? '⭐ 已收藏' : '☆ 未收藏'}</p>
         </div>
         ${structuredDetail}
+        ${imagesHtml}
         <div class="history-detail-content">
             <h4>完整内容（Markdown）：</h4>
             <div class="result-area show">

@@ -50,7 +50,7 @@
 
                 <div class="input-group">
                     <label>修改用户名：</label>
-                    <input type="text" id="new-username" placeholder="输入新用户名">
+                    <input type="text" id="new-username" placeholder="输入新用户名" autocomplete="off">
                 </div>
                 <button onclick="updateUsername()" class="generate-btn">更新用户名</button>
             </section>
@@ -80,19 +80,19 @@
 
                 <div class="input-group">
                     <label>模型名称：</label>
-                    <input type="text" id="model-name" placeholder="例如：我的GPT-4模型">
+                    <input type="text" id="model-name" placeholder="例如：我的deepseek模型" autocomplete="off">
                 </div>
                 <div class="input-group">
                     <label>API URL：</label>
-                    <input type="text" id="model-url" placeholder="https://api.example.com/v1/chat/completions">
+                    <input type="text" id="model-url" placeholder="https://api.example.com/v1/chat/completions" autocomplete="off">
                 </div>
                 <div class="input-group">
                     <label>API Key：</label>
-                    <input type="password" id="model-key" placeholder="输入API密钥">
+                    <input type="text" id="model-key" placeholder="输入API密钥" autocomplete="off">
                 </div>
                 <div class="input-group">
                     <label>Model ID：</label>
-                    <input type="text" id="model-id" placeholder="例如：gpt-4">
+                    <input type="text" id="model-id" placeholder="例如：deepseek-chat" autocomplete="off">
                 </div>
                 <button onclick="addModel()" class="generate-btn">添加模型</button>
 

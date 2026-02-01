@@ -50,7 +50,7 @@
                     </div>
                     <div class="setting-control">
                         <label class="switch">
-                            <input type="checkbox" id="registration-toggle" onchange="toggleRegistration()">
+                            <input type="checkbox" id="registration-toggle" onchange="toggleRegistration()" autocomplete="off">
                             <span class="slider"></span>
                         </label>
                         <span id="registration-status" class="status-text">加载中...</span>
@@ -91,23 +91,23 @@
 
                 <div class="input-group">
                     <label>模型名称：</label>
-                    <input type="text" id="public-model-name" placeholder="例如：GPT-4 Turbo">
+                    <input type="text" id="public-model-name" placeholder="例如：GPT-4 Turbo" autocomplete="off">
                 </div>
                 <div class="input-group">
                     <label>API URL：</label>
-                    <input type="text" id="public-model-url" placeholder="https://api.example.com/v1/chat/completions">
+                    <input type="text" id="public-model-url" placeholder="https://api.example.com/v1/chat/completions" autocomplete="off">
                 </div>
                 <div class="input-group">
                     <label>API Key：</label>
-                    <input type="password" id="public-model-key" placeholder="输入API密钥">
+                    <input type="text" id="public-model-key" placeholder="输入API密钥">
                 </div>
                 <div class="input-group">
                     <label>Model ID：</label>
-                    <input type="text" id="public-model-id" placeholder="例如：gpt-4-turbo">
+                    <input type="text" id="public-model-id" placeholder="例如：deepseek-chat" autocomplete="off">
                 </div>
                 <div class="input-group">
                     <label>描述（可选）：</label>
-                    <input type="text" id="public-model-desc" placeholder="模型描述">
+                    <input type="text" id="public-model-desc" placeholder="模型描述" autocomplete="off">
                 </div>
                 <button onclick="addPublicModel()" class="generate-btn">添加公用模型</button>
 

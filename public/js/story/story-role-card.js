@@ -80,6 +80,9 @@ function renderRoleCard() {
     counterEl.textContent = `${roleCardCurrentIndex + 1} / ${roleCardCharacters.length}`;
   }
 
+  // 渲染角色立绘
+  renderRolePortrait(character);
+
   // 渲染角色详情
   const detailsEl = document.getElementById('role-card-details');
   if (detailsEl) {
@@ -93,6 +96,46 @@ function renderRoleCard() {
     const showNav = roleCardCharacters.length > 1;
     prevBtn.style.display = showNav ? 'flex' : 'none';
     nextBtn.style.display = showNav ? 'flex' : 'none';
+  }
+}
+
+/**
+ * 渲染角色立绘
+ */
+function renderRolePortrait(character) {
+  const artworkEl = document.querySelector('.role-card-artwork');
+  if (!artworkEl) return;
+
+  // 检查是否有立绘图片
+  const hasPortrait = character.portraitImage || character.portraitUrl;
+
+  if (hasPortrait) {
+    // 显示实际的立绘图片
+    let imageUrl = character.portraitUrl;
+
+    // 如果有Base64数据，优先使用（更可靠）
+    if (character.portraitImage) {
+      imageUrl = `data:image/jpeg;base64,${character.portraitImage}`;
+    }
+
+    artworkEl.innerHTML = `
+      <img src="${imageUrl}"
+           alt="${character.name || '角色立绘'}"
+           class="role-portrait-image"
+           onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+      <div class="role-artwork-placeholder" style="display: none;">
+        <div class="artwork-placeholder-icon">🎨</div>
+        <div class="artwork-placeholder-text">角色立绘</div>
+      </div>
+    `;
+  } else {
+    // 显示占位符和生成提示
+    artworkEl.innerHTML = `
+      <div class="role-artwork-placeholder">
+        <div class="artwork-placeholder-icon">🎨</div>
+        <div class="artwork-placeholder-text">图片生成中，请稍后...</div>
+      </div>
+    `;
   }
 }
 

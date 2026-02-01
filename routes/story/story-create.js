@@ -3,9 +3,11 @@ const router = express.Router();
 const axios = require('axios');
 const History = require('../../models/History');
 const Story = require('../../models/Story');
+const User = require('../../models/User');
 const { authenticateToken } = require('../../middleware/auth');
 const { getModelConfigFromRequest } = require('../../services/aiService');
 const { buildStoryDataPrompt, buildStoryOpeningPrompt } = require('./story-utils');
+const { generateAndDownloadImages } = require('../../services/imageService');
 
 /**
  * 生成故事数据（角色、情节、世界观）
@@ -82,6 +84,37 @@ async function generateStoryData(name, characters, plot, world, plotHistory, wor
   }
 
   return responseData;
+}
+
+/**
+ * 生成角色图片（带重试机制）
+ * @param {object} characterInfo - 角色信息
+ * @param {object} imageConfig - 图片生成配置
+ * @param {number} retryCount - 当前重试次数
+ * @returns {Promise<object>} 包含图片数据的对象
+ */
+async function generateCharacterImageWithRetry(characterInfo, imageConfig, retryCount = 0) {
+  const maxRetries = 3;
+
+  try {
+    console.log(`[Story Create] 生成角色图片（第${retryCount + 1}次尝试）...`);
+    const result = await generateAndDownloadImages(characterInfo, imageConfig);
+    return result;
+  } catch (error) {
+    console.error(`[Story Create] 生成角色图片失败（第${retryCount + 1}次）:`, error.message);
+
+    if (retryCount < maxRetries) {
+      // 等待一段时间后重试（指数退避）
+      const waitTime = 1000 * Math.pow(2, retryCount);
+      console.log(`[Story Create] 等待${waitTime}ms后重试...`);
+      await new Promise(resolve => setTimeout(resolve, waitTime));
+
+      return generateCharacterImageWithRetry(characterInfo, imageConfig, retryCount + 1);
+    }
+
+    // 达到最大重试次数
+    throw new Error(`角色图片生成失败，已重试${maxRetries}次: ${error.message}`);
+  }
 }
 
 /**
@@ -345,62 +378,101 @@ router.post('/create', authenticateToken, async (req, res) => {
     }
 
     // 处理角色数据
-    const characterData = await Promise.all(
-      characters.map(async (char, index) => {
-        // 如果是自动生成，使用AI生成的数据
-        if (!char.historyId) {
-          const generatedChar = generatedData?.characters?.[index];
+    let characterData;
+    try {
+      characterData = await Promise.all(
+        characters.map(async (char, index) => {
+          // 如果是自动生成，使用AI生成的数据
+          if (!char.historyId) {
+            const generatedChar = generatedData?.characters?.[index];
+
+            const characterInfo = {
+              role: char.role,
+              historyId: null,
+              name: generatedChar?.name || '待AI生成',
+              archetype: generatedChar?.archetype,
+              setting: generatedChar?.setting,
+              traits: generatedChar?.traits || [],
+              appearance: generatedChar?.appearance,
+              personality: generatedChar?.personality,
+              backstory: generatedChar?.backstory,
+              motivation: generatedChar?.motivation,
+              abilities: generatedChar?.abilities || [],
+              roleInStory: generatedChar?.roleInStory
+            };
+
+            // 生成角色图片（立绘 + 头像）
+            const user = await User.findById(req.user._id);
+            const doubaoConfig = user?.doubaoConfig || {};
+
+            // 使用默认配置（头像使用seedream-4.5，因为doubao-seededit-3.0-i2i已下线）
+            const imageConfig = {
+              apiKey: doubaoConfig.apiKey || '8111a62f-0f7c-42f2-ba06-3f52201ac62f',
+              baseUrl: doubaoConfig.baseUrl || 'https://ark.cn-beijing.volces.com/api/v3',
+              portraitModel: doubaoConfig.portraitModel || 'doubao-seedream-4-5-251128',
+              avatarModel: doubaoConfig.avatarModel || 'doubao-seedream-4-5-251128'
+            };
+
+            console.log(`[Story Create] 开始生成角色${index + 1}的图片...`);
+            const { portraitBase64, avatarBase64, portraitUrl, avatarUrl } = await generateCharacterImageWithRetry(
+              characterInfo,
+              imageConfig
+            );
+
+            characterInfo.portraitImage = portraitBase64;
+            characterInfo.avatarImage = avatarBase64;
+            characterInfo.portraitUrl = portraitUrl;
+            characterInfo.avatarUrl = avatarUrl;
+
+            console.log(`[Story Create] 角色${index + 1}图片生成完成`);
+
+            return characterInfo;
+          }
+
+          // 使用已保存的历史记录数据
+          const history = await History.findById(char.historyId);
+          if (!history) {
+            throw new Error(`角色历史记录不存在: ${char.historyId}`);
+          }
+
+          const structuredChar = history.structuredData?.character || {};
+          const inputParams = history.inputParams || {};
+
+          let traits = structuredChar.traits || inputParams.traits;
+          if (traits && !Array.isArray(traits)) {
+            traits = [traits];
+          }
+
+          let abilities = structuredChar.abilities;
+          if (abilities && !Array.isArray(abilities)) {
+            abilities = [abilities];
+          }
+
           return {
             role: char.role,
-            historyId: null,
-            name: generatedChar?.name || '待AI生成',
-            archetype: generatedChar?.archetype,
-            setting: generatedChar?.setting,
-            traits: generatedChar?.traits || [],
-            appearance: generatedChar?.appearance,
-            personality: generatedChar?.personality,
-            backstory: generatedChar?.backstory,
-            motivation: generatedChar?.motivation,
-            abilities: generatedChar?.abilities || [],
-            roleInStory: generatedChar?.roleInStory
+            historyId: char.historyId,
+            name: structuredChar.name || inputParams.archetype || '未命名',
+            archetype: structuredChar.archetype || inputParams.archetype,
+            setting: structuredChar.setting || inputParams.setting,
+            traits: traits,
+            appearance: structuredChar.appearance,
+            personality: structuredChar.personality,
+            backstory: structuredChar.backstory,
+            motivation: structuredChar.motivation,
+            abilities: abilities,
+            roleInStory: structuredChar.roleInStory,
+            // 从历史记录中获取图片数据
+            portraitImage: history.portraitImage || null,
+            avatarImage: history.avatarImage || null,
+            portraitUrl: history.portraitUrl || null,
+            avatarUrl: history.avatarUrl || null
           };
-        }
-
-        // 使用已保存的历史记录数据
-        const history = await History.findById(char.historyId);
-        if (!history) {
-          throw new Error(`角色历史记录不存在: ${char.historyId}`);
-        }
-
-        const structuredChar = history.structuredData?.character || {};
-        const inputParams = history.inputParams || {};
-
-        let traits = structuredChar.traits || inputParams.traits;
-        if (traits && !Array.isArray(traits)) {
-          traits = [traits];
-        }
-
-        let abilities = structuredChar.abilities;
-        if (abilities && !Array.isArray(abilities)) {
-          abilities = [abilities];
-        }
-
-        return {
-          role: char.role,
-          historyId: char.historyId,
-          name: structuredChar.name || inputParams.archetype || '未命名',
-          archetype: structuredChar.archetype || inputParams.archetype,
-          setting: structuredChar.setting || inputParams.setting,
-          traits: traits,
-          appearance: structuredChar.appearance,
-          personality: structuredChar.personality,
-          backstory: structuredChar.backstory,
-          motivation: structuredChar.motivation,
-          abilities: abilities,
-          roleInStory: structuredChar.roleInStory
-        };
-      })
-    );
+        })
+      );
+    } catch (error) {
+      console.error('[Story Create] 处理角色数据失败:', error.message);
+      throw new Error(`角色数据处理失败: ${error.message}`);
+    }
 
     // 处理情节数据
     const plotData = generatedData?.plot || plotHistory?.structuredData?.plot || {};
@@ -431,60 +503,73 @@ router.post('/create', authenticateToken, async (req, res) => {
     }
 
     // 创建故事
-    const story = new Story({
-      userId: req.user._id,
-      name,
-      characters: characterData,
-      plot: {
-        historyId: plot.historyId,
-        title: plotData.title,
-        summary: plotData.summary,
-        keywords: keywords,
-        genre: plotData.genre || plotInputParams.genre,
-        complexity: plotData.complexity || plotInputParams.complexity,
-        acts: plotData.acts,
-        climax: plotData.climax,
-        resolution: plotData.resolution,
-        themes: themes
-      },
-      world: {
-        historyId: world.historyId,
-        worldName: worldData.worldName,
-        era: worldData.era || worldInputParams.era,
-        technology: worldData.technology || worldInputParams.technology,
-        magicSystem: worldData.magicSystem || worldInputParams.magicSystem,
-        culture: worldData.culture || worldInputParams.culture,
-        geography: worldData.geography,
-        politics: worldData.politics,
-        economy: worldData.economy,
-        religions: religions,
-        notableLocations: worldData.notableLocations,
-        uniqueFeatures: uniqueFeatures
-      },
-      messages: [],
-      memories: [],
-      parseErrorCount: 0,
-      status: 'active',
-      metadata: {
-        totalMessages: 0,
-        openingGenerating: true  // 标记开场正在生成
-      }
-    });
+    let story;
+    try {
+      story = new Story({
+        userId: req.user._id,
+        name,
+        characters: characterData,
+        plot: {
+          historyId: plot.historyId,
+          title: plotData.title,
+          summary: plotData.summary,
+          keywords: keywords,
+          genre: plotData.genre || plotInputParams.genre,
+          complexity: plotData.complexity || plotInputParams.complexity,
+          acts: plotData.acts,
+          climax: plotData.climax,
+          resolution: plotData.resolution,
+          themes: themes
+        },
+        world: {
+          historyId: world.historyId,
+          worldName: worldData.worldName,
+          era: worldData.era || worldInputParams.era,
+          technology: worldData.technology || worldInputParams.technology,
+          magicSystem: worldData.magicSystem || worldInputParams.magicSystem,
+          culture: worldData.culture || worldInputParams.culture,
+          geography: worldData.geography,
+          politics: worldData.politics,
+          economy: worldData.economy,
+          religions: religions,
+          notableLocations: worldData.notableLocations,
+          uniqueFeatures: uniqueFeatures
+        },
+        messages: [],
+        memories: [],
+        parseErrorCount: 0,
+        status: 'active',
+        metadata: {
+          totalMessages: 0,
+          openingGenerating: true  // 标记开场正在生成
+        }
+      });
 
-    await story.save();
+      await story.save();
+      console.log(`[Story Create] 故事已创建，ID: ${story._id}`);
+    } catch (error) {
+      console.error('[Story Create] 保存故事失败:', error.message);
+      throw new Error(`故事保存失败: ${error.message}`);
+    }
 
     // 等待故事开场生成完成（带超时）
+    // 增加超时时间，因为图片生成可能需要较长时间
     try {
       await Promise.race([
         generateStoryOpening(story, modelConfig),
         new Promise((_, reject) =>
-          setTimeout(() => reject(new Error('开场生成超时')), 60000)
+          setTimeout(() => reject(new Error('开场生成超时')), 180000)  // 3分钟超时
         )
       ]);
     } catch (err) {
-      console.error('生成故事开场失败:', err);
+      console.error('生成故事开场失败，删除已创建的故事:', err.message);
       // 开场生成失败，删除已创建的故事
-      await Story.findByIdAndDelete(story._id);
+      try {
+        await Story.findByIdAndDelete(story._id);
+        console.log(`[Story Create] 已删除失败的故事: ${story._id}`);
+      } catch (deleteError) {
+        console.error('删除故事失败:', deleteError.message);
+      }
       throw new Error('故事开场生成失败: ' + err.message);
     }
 

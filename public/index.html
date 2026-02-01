@@ -47,7 +47,7 @@
                 <!-- 顶部操作栏 -->
                 <div class="story-list-header">
                     <div class="search-box">
-                        <input type="text" id="story-search" placeholder="搜索故事...">
+                        <input type="text" id="story-search" placeholder="搜索故事..." autocomplete="off">
                     </div>
                     <div class="action-buttons">
                         <button onclick="openCreateStoryModal()" class="btn-primary" title="创建故事">
@@ -153,15 +153,15 @@
                 <h2>🎭 角色设定大师</h2>
                 <div class="input-group">
                     <label>角色原型：</label>
-                    <input type="text" id="char-archetype" placeholder="例如：神秘的侦探、勇敢的探险家、天才发明家">
+                    <input type="text" id="char-archetype" placeholder="例如：神秘的侦探、勇敢的探险家、天才发明家" autocomplete="off">
                 </div>
                 <div class="input-group">
                     <label>背景设定：</label>
-                    <input type="text" id="char-setting" placeholder="例如：赛博朋克都市、维多利亚时代、末日废土">
+                    <input type="text" id="char-setting" placeholder="例如：赛博朋克都市、维多利亚时代、末日废土" autocomplete="off">
                 </div>
                 <div class="input-group">
                     <label>关键特质：</label>
-                    <input type="text" id="char-traits" placeholder="例如：聪明、幽默、孤独、执着">
+                    <input type="text" id="char-traits" placeholder="例如：聪明、幽默、孤独、执着" autocomplete="off">
                 </div>
                 <button onclick="generateCharacter()" class="generate-btn">生成角色</button>
                 <div id="character-result" class="result-area"></div>
@@ -172,7 +172,7 @@
                 <h2>📖 情节编织大师</h2>
                 <div class="input-group">
                     <label>故事关键词（用逗号分隔）：</label>
-                    <input type="text" id="plot-keywords" placeholder="例如：时间旅行, 谋杀, 爱情">
+                    <input type="text" id="plot-keywords" placeholder="例如：时间旅行, 谋杀, 爱情" autocomplete="off">
                 </div>
                 <div class="input-group">
                     <label>故事类型：</label>
@@ -531,7 +531,7 @@
                 </div>
                 <div class="input-group">
                     <label>文化背景：</label>
-                    <input type="text" id="world-culture" placeholder="例如：东方武侠、西方奇幻、蒸汽朋克都市">
+                    <input type="text" id="world-culture" placeholder="例如：东方武侠、西方奇幻、蒸汽朋克都市" autocomplete="off">
                 </div>
                 <button onclick="buildWorld()" class="generate-btn">构建世界</button>
                 <div id="world-result" class="result-area"></div>
@@ -596,11 +596,11 @@
                 </div>
                 <div class="input-group">
                     <label>主题：</label>
-                    <input type="text" id="puzzle-theme" placeholder="例如：时间、爱情、背叛、救赎">
+                    <input type="text" id="puzzle-theme" placeholder="例如：时间、爱情、背叛、救赎" autocomplete="off">
                 </div>
                 <div class="input-group">
                     <label>背景设定：</label>
-                    <input type="text" id="puzzle-setting" placeholder="例如：古代遗迹、未来都市、魔法塔">
+                    <input type="text" id="puzzle-setting" placeholder="例如：古代遗迹、未来都市、魔法塔" autocomplete="off">
                 </div>
                 <button onclick="designPuzzle()" class="generate-btn">设计谜题</button>
                 <div id="puzzle-result" class="result-area"></div>
@@ -690,7 +690,7 @@
                 </div>
                 <div class="input-group">
                     <label>生成数量：</label>
-                    <input type="number" id="names-count" value="5" min="1" max="20" placeholder="1-20">
+                    <input type="number" id="names-count" value="5" min="1" max="20" placeholder="1-20" autocomplete="off">
                 </div>
                 <button onclick="generateNames()" class="generate-btn">生成名字</button>
                 <div id="names-result" class="result-area"></div>
@@ -816,12 +816,12 @@
                 <form id="create-story-form">
                     <div class="input-group">
                         <label>故事名称</label>
-                        <input type="text" id="story-name" required placeholder="输入故事名称">
+                        <input type="text" id="story-name" required placeholder="输入故事名称" autocomplete="off" autocomplete="off">
                     </div>
 
                     <div class="input-group">
                         <label>角色数量（2~4）</label>
-                        <input type="number" id="character-count" min="2" max="4" value="2" required>
+                        <input type="number" id="character-count" min="2" max="4" value="2" required autocomplete="off">
                     </div>
 
                     <div id="character-sections"></div>
@@ -863,6 +863,7 @@
                         <p>• 角色、情节、世界观可以从历史记录中选择</p>
                         <p>• 如果没有记录，可以选择"自动生成"</p>
                         <p>• AI会自动补全或规范化处理选中的内容</p>
+                        <p>• 🎨 自动生成的角色将同时生成立绘和头像（可能需要1-2分钟）</p>
                     </div>
 
                     <button type="submit" class="generate-btn">创建故事</button>

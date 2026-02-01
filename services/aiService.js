@@ -22,8 +22,9 @@ const { JWT_SECRET } = require('../middleware/auth');
  * @param {number} retryCount - 当前重试次数
  * @param {object} modelConfig - 模型配置 { url, apiKey, modelId }
  * @param {function} onComplete - 流式传输完成后的回调函数 (content) => {}
+ * @param {function} onAllComplete - 所有处理（包括图片生成）完成后的回调函数 () => {}
  */
-async function callAIStream(prompt, systemPrompt = '', res, retryCount = 0, modelConfig = null, onComplete = null) {
+async function callAIStream(prompt, systemPrompt = '', res, retryCount = 0, modelConfig = null, onComplete = null, onAllComplete = null) {
   const maxRetries = 3; // 最大重试次数
   const baseDelay = 2000; // 基础延迟2秒
 
@@ -61,7 +62,7 @@ async function callAIStream(prompt, systemPrompt = '', res, retryCount = 0, mode
     let fullContent = '';
 
     // 监听数据流
-    response.data.on('data', (chunk) => {
+    response.data.on('data', async (chunk) => {
       const chunkStr = chunk.toString();
       const lines = chunkStr.split('\n').filter(line => line.trim());
 
@@ -70,12 +71,16 @@ async function callAIStream(prompt, systemPrompt = '', res, retryCount = 0, mode
           const data = line.slice(6); // 移除 "data: " 前缀
 
           if (data === '[DONE]') {
-            // 流式结束
+            // 流式结束 - 先调用onComplete处理消息和图片生成
+            if (onComplete && fullContent) {
+              await onComplete(fullContent);
+            }
+            // 然后发送完成信号给前端
             res.write(`data: ${JSON.stringify({ done: true, content: fullContent })}\n\n`);
             res.end();
-            // 调用回调函数保存历史记录
-            if (onComplete && fullContent) {
-              onComplete(fullContent);
+            // 调用onAllComplete回调（如果提供）
+            if (onAllComplete) {
+              onAllComplete();
             }
             return;
           }
@@ -97,13 +102,18 @@ async function callAIStream(prompt, systemPrompt = '', res, retryCount = 0, mode
     });
 
     // 监听结束事件
-    response.data.on('end', () => {
+    response.data.on('end', async () => {
       if (!res.headersSent) {
+        // 先调用onComplete处理消息和图片生成
+        if (onComplete && fullContent) {
+          await onComplete(fullContent);
+        }
+        // 然后发送完成信号给前端
         res.write(`data: ${JSON.stringify({ done: true, content: fullContent })}\n\n`);
         res.end();
-        // 调用回调函数保存历史记录
-        if (onComplete && fullContent) {
-          onComplete(fullContent);
+        // 调用onAllComplete回调（如果提供）
+        if (onAllComplete) {
+          onAllComplete();
         }
       }
     });
@@ -128,7 +138,7 @@ async function callAIStream(prompt, systemPrompt = '', res, retryCount = 0, mode
       await new Promise(resolve => setTimeout(resolve, delay));
 
       // 递归重试
-      return callAIStream(prompt, systemPrompt, res, retryCount + 1, config);
+      return callAIStream(prompt, systemPrompt, res, retryCount + 1, modelConfig, onComplete, onAllComplete);
     }
 
     // 其他错误或重试次数用完

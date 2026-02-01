@@ -181,15 +181,34 @@ function renderMessage(message) {
 
   // 判断是否可点击（有完整的角色数据）
   const isClickable = characterIndex !== undefined && hasCharacterData;
-  const clickHandler = isClickable ? `onclick="showCharacterFromMessage(${characterIndex})"` : '';
+  const clickHandler = isClickable ? `onclick=\"showCharacterFromMessage(${characterIndex})\"` : '';
   const clickableClass = isClickable ? 'clickable' : '';
   const roleClass = `message-role ${clickableClass} ${isClickable ? '' : 'non-clickable'}`.trim();
   const avatarClass = `message-avatar ${clickableClass} ${isClickable ? '' : 'non-clickable'}`.trim();
 
+  // 获取头像图片（优先使用Base64，其次URL，最后使用默认图标）
+  let avatarContent = '👤';  // 默认图标
+
+  if (characterIndex !== undefined && currentStoryData) {
+    const character = currentStoryData.characters[characterIndex];
+    if (character) {
+      if (character.avatarImage) {
+        // 使用Base64图片
+        avatarContent = `<img src="data:image/jpeg;base64,${character.avatarImage}" alt="${displayName}" class="avatar-image">`;
+      } else if (character.avatarUrl) {
+        // 使用URL图片
+        avatarContent = `<img src="${character.avatarUrl}" alt="${displayName}" class="avatar-image">`;
+      } else {
+        // 图片还在生成中，显示加载中图标
+        avatarContent = '<span class="generating-avatar">⏳</span>';
+      }
+    }
+  }
+
   return `
     <div class="message message-${message.type}">
       <div class="message-header">
-        <span class="${avatarClass}" ${clickHandler}>👤</span>
+        <span class="${avatarClass}" ${clickHandler}>${avatarContent}</span>
         <span class="${roleClass}" ${clickHandler}>${displayName}</span>
         <span class="message-time">${time}</span>
       </div>
@@ -332,6 +351,9 @@ async function sendMessage() {
     return;
   }
 
+  // 记录当前角色数量（用于检测是否新增角色）
+  const previousCharacterCount = currentStoryData?.characters?.length || 0;
+
   // 渲染用户消息（作为主角）
   const mainCharacterIndex = currentStoryData.characters.findIndex(c => c.role === '主角');
   const userMessage = {
@@ -354,19 +376,18 @@ async function sendMessage() {
   showButtonLoading();
 
   // 使用非流式调用（避免看到JSON原始数据）
+  // 注意：后端会在图片生成完成后才发送完成信号
+  // 所以前端的按钮加载状态会一直保持到图片生成完成
   sendMessageNonStream(
     currentStoryId,
     { content },
     async (finalContent) => {
-      // onComplete
+      // onComplete - 图片生成已完成
       hideButtonLoading();
-      showNotification('发送成功', 'success');
-
-      // 等待一小段时间，确保后端完成消息保存
-      await new Promise(resolve => setTimeout(resolve, 500));
 
       // 重新加载消息以获取最新的消息列表
-      await refreshMessages();
+      // 传递 previousCharacterCount 以便检测新角色并显示角色卡片
+      await refreshMessages(previousCharacterCount);
 
       // 轮询检查记忆压缩是否完成（消息数是否变化）
       startMemoryCompressionPolling();
@@ -381,14 +402,17 @@ async function sendMessage() {
 
 /**
  * 刷新消息
+ * @param {number} previousCharacterCount - 刷新前的角色数量（可选，用于检测新角色）
  */
-async function refreshMessages() {
+async function refreshMessages(previousCharacterCount) {
   if (!currentStoryId) return;
 
   const token = localStorage.getItem('token');
 
-  // 记录刷新前的角色数量
-  const previousCharacterCount = currentStoryData?.characters?.length || 0;
+  // 如果没有提供 previousCharacterCount，使用当前的值
+  if (previousCharacterCount === undefined) {
+    previousCharacterCount = currentStoryData?.characters?.length || 0;
+  }
 
   const response = await fetch(`/api/story/${currentStoryId}`, {
     headers: {
@@ -405,10 +429,11 @@ async function refreshMessages() {
 
     // 检查是否有新角色被创建
     const newCharacterCount = result.story.characters?.length || 0;
-    if (newCharacterCount > previousCharacterCount && previousCharacterCount > 0) {
+    if (newCharacterCount > previousCharacterCount) {
       // 找出新创建的角色
       const newCharacters = result.story.characters.slice(previousCharacterCount);
-      // 显示新角色的卡片
+
+      // 显示新角色的卡片（无论是否是第一次添加角色）
       setTimeout(() => {
         openRoleCardModal(newCharacters, 0);
       }, 500);

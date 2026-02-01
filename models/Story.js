@@ -38,7 +38,25 @@ const storySchema = new mongoose.Schema({
     backstory: String,
     motivation: String,
     abilities: [String],
-    roleInStory: String
+    roleInStory: String,
+    // 图片字段（Base64格式存储）
+    portraitImage: {
+      type: String,  // Base64编码的立绘图片数据
+      default: null
+    },
+    avatarImage: {
+      type: String,  // Base64编码的头像图片数据
+      default: null
+    },
+    // 图片URL（备用字段）
+    portraitUrl: {
+      type: String,
+      default: null
+    },
+    avatarUrl: {
+      type: String,
+      default: null
+    }
   }],
 
   // 情节配置

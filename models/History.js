@@ -199,6 +199,25 @@ const historySchema = new mongoose.Schema({
   isFavorite: {
     type: Boolean,
     default: false
+  },
+  // 立绘图片（Base64格式存储）
+  portraitImage: {
+    type: String,  // Base64编码的图片数据
+    default: null
+  },
+  // 头像图片（Base64格式存储）
+  avatarImage: {
+    type: String,  // Base64编码的图片数据
+    default: null
+  },
+  // 图片URL（如果存储为URL）
+  portraitUrl: {
+    type: String,
+    default: null
+  },
+  avatarUrl: {
+    type: String,
+    default: null
   }
 }, {
   timestamps: true
