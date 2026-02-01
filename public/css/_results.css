@@ -849,3 +849,79 @@
         transform: translateY(0);
     }
 }
+
+/* ==================== 错误消息样式 ==================== */
+
+/* 聊天错误消息容器 */
+.chat-error-message {
+    background: rgba(231, 76, 60, 0.15);
+    border: 1px solid rgba(231, 76, 60, 0.5);
+    border-radius: var(--radius-lg);
+    padding: var(--spacing-lg);
+    margin: var(--spacing-lg) 0;
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-md);
+    animation: slideIn 0.3s ease;
+}
+
+/* 错误内容区域 */
+.chat-error-message .error-content {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--spacing-md);
+}
+
+/* 错误图标 */
+.chat-error-message .error-icon {
+    font-size: 1.5em;
+    flex-shrink: 0;
+}
+
+/* 错误文本 */
+.chat-error-message .error-text {
+    flex: 1;
+}
+
+.chat-error-message .error-text strong {
+    color: #e74c3c;
+    font-size: 1.1em;
+    display: block;
+    margin-bottom: 4px;
+}
+
+.chat-error-message .error-text p {
+    color: var(--text-light);
+    margin: 4px 0;
+    line-height: 1.5;
+}
+
+.chat-error-message .error-text small {
+    color: var(--text-muted);
+    font-size: 0.8em;
+    font-family: var(--font-mono);
+}
+
+/* 重试按钮 */
+.btn-retry {
+    align-self: flex-start;
+    padding: 8px 16px;
+    background: rgba(231, 76, 60, 0.2);
+    border: 1px solid #e74c3c;
+    border-radius: var(--radius-md);
+    color: #e74c3c;
+    cursor: pointer;
+    font-size: 0.9em;
+    font-weight: 600;
+    transition: all var(--transition-normal);
+    font-family: var(--font-body);
+}
+
+.btn-retry:hover {
+    background: rgba(231, 76, 60, 0.4);
+    transform: translateY(-2px);
+}
+
+.btn-retry:active {
+    transform: translateY(0);
+}

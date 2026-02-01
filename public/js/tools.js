@@ -50,7 +50,7 @@ async function generateCharacter() {
         showNotification('角色生成成功！', 'success');
     },
     // onError
-    (error) => {
+    (error, errorCode, statusCode) => {
         hideLoading();
         showNotification('生成失败: ' + error, 'error');
     });

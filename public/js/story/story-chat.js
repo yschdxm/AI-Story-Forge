@@ -7,6 +7,7 @@ let currentStoryId = null;  // 当前故事ID
 let currentStoryData = null;  // 当前故事数据
 let memoryPollingInterval = null;  // 记忆压缩轮询间隔
 let memoryPollingTimeout = null;  // 记忆压缩轮询超时
+let lastErrorState = null;  // 最后一次错误状态 { message, errorCode, statusCode, userInput, timestamp }
 
 // ==================== 对话界面 ====================
 
@@ -54,6 +55,12 @@ async function enterStory(storyId) {
     // 更新消息计数
     updateMessageCount(result.story.messages?.length || 0);
 
+    // 加载错误状态（持久化）- 必须在渲染消息之后调用
+    // 因为 renderMessages 会清空容器
+    setTimeout(async () => {
+      await loadErrorStateFromStorage();
+    }, 100);
+
     // 检查是否是首次进入（通过是否有首次进入标记判断）
     const isFirstEntry = !localStorage.getItem(`story_entered_${storyId}`);
 
@@ -86,6 +93,10 @@ function backToStoryList() {
     memoryPollingTimeout = null;
   }
 
+  // 注意：不在此处清除错误状态
+  // 错误状态应该在用户点击重试按钮或消息发送成功后才清除
+  // 这样可以保持错误状态，让用户在重新进入故事时仍然可以看到
+
   currentStoryId = null;
   currentStoryData = null;
 
@@ -111,14 +122,13 @@ function renderMessages(messages) {
 
   if (messages.length === 0) {
     container.innerHTML = '<p class="empty-tip">还没有消息，开始你的故事吧！</p>';
-    return;
+  } else {
+    const html = messages.map(msg => {
+      return renderMessage(msg);
+    }).join('');
+
+    container.innerHTML = html;
   }
-
-  const html = messages.map(msg => {
-    return renderMessage(msg);
-  }).join('');
-
-  container.innerHTML = html;
 
   // 滚动到底部
   scrollToBottom();
@@ -132,6 +142,8 @@ function renderMessage(message) {
     hour: '2-digit',
     minute: '2-digit'
   });
+
+  console.log('[Render] 渲染消息:', message.type, message.content?.substring(0, 50));
 
   // 旁白 - 不显示头部（角色名和时间）
   if (message.type === '旁白') {
@@ -376,28 +388,258 @@ async function sendMessage() {
   showButtonLoading();
 
   // 使用非流式调用（避免看到JSON原始数据）
-  // 注意：后端会在图片生成完成后才发送完成信号
-  // 所以前端的按钮加载状态会一直保持到图片生成完成
+  // 注意：后端会在保存消息到数据库后才发送完成信号
+  // 所以前端收到完成信号时，消息已经保存到数据库
   sendMessageNonStream(
     currentStoryId,
     { content },
     async (finalContent) => {
       // onComplete - 图片生成已完成
+      console.log('[Story] onComplete回调被调用，finalContent长度:', finalContent.length);
       hideButtonLoading();
 
       // 重新加载消息以获取最新的消息列表
       // 传递 previousCharacterCount 以便检测新角色并显示角色卡片
       await refreshMessages(previousCharacterCount);
 
+      // 消息发送成功，清除错误状态
+      await clearErrorState();
+
       // 轮询检查记忆压缩是否完成（消息数是否变化）
       startMemoryCompressionPolling();
     },
-    (error) => {
+    async (error, errorCode, statusCode) => {
       // onError
       hideButtonLoading();
-      showNotification('发送失败: ' + error, 'error');
+
+      // 判断错误类型
+      await handleSendMessageError(error, errorCode, statusCode, content);
     }
   );
+}
+
+/**
+ * 处理发送消息的错误
+ */
+async function handleSendMessageError(error, errorCode, statusCode, userInput) {
+  // 检查是否是需要重试的错误（从utils.js获取配置）
+  const retryableCodes = window.RETRYABLE_ERROR_CODES || ['BAD_REQUEST', 'RATE_LIMITED', 'INTERNAL_SERVER_ERROR', 'SERVICE_UNAVAILABLE', 'UNKNOWN_ERROR'];
+  const isRetryable = !errorCode || retryableCodes.includes(errorCode);
+
+  if (isRetryable) {
+    // 可重试的错误：显示错误信息，但不保存错误状态
+    showNotification('发送失败: ' + error, 'error');
+    console.log(`[Error] 可重试错误: ${error}, 错误码: ${errorCode}, 状态码: ${statusCode}`);
+  } else {
+    // 不可重试的错误：保存错误状态，显示重试按钮
+    lastErrorState = {
+      message: error,
+      errorCode: errorCode,
+      statusCode: statusCode,
+      userInput: userInput,
+      timestamp: new Date().toISOString()
+    };
+
+    // 持久化到数据库（等待保存完成）
+    await saveErrorStateToStorage();
+
+    // 显示错误消息
+    showNotification('发生错误: ' + error, 'error');
+
+    // 在消息区域显示错误状态
+    displayErrorInChat(error, errorCode);
+
+    console.log(`[Error] 不可重试错误: ${error}, 错误码: ${errorCode}, 状态码: ${statusCode}`);
+  }
+}
+
+/**
+ * 保存错误状态到数据库
+ */
+async function saveErrorStateToStorage() {
+  if (!currentStoryId || !lastErrorState) return;
+
+  try {
+    const token = localStorage.getItem('token');
+    const response = await fetch(`/api/story/${currentStoryId}/error-state`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify({
+        message: lastErrorState.message,
+        errorCode: lastErrorState.errorCode,
+        statusCode: lastErrorState.statusCode,
+        userInput: lastErrorState.userInput
+      })
+    });
+
+    const result = await response.json();
+
+    if (result.success) {
+      console.log('[Error] 错误状态已保存到数据库');
+    } else {
+      console.error('[Error] 保存错误状态失败:', result.error);
+    }
+  } catch (error) {
+    console.error('[Error] 保存错误状态失败:', error.message);
+  }
+}
+
+/**
+ * 从数据库加载错误状态
+ */
+async function loadErrorStateFromStorage() {
+  if (!currentStoryId) return;
+
+  try {
+    const token = localStorage.getItem('token');
+    const response = await fetch(`/api/story/${currentStoryId}/error-state`, {
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    });
+
+    const result = await response.json();
+
+    console.log('[Error] 尝试从数据库加载错误状态:', result);
+
+    if (result.success && result.errorState && result.errorState.hasError) {
+      lastErrorState = {
+        message: result.errorState.message,
+        errorCode: result.errorState.errorCode,
+        statusCode: result.errorState.statusCode,
+        userInput: result.errorState.userInput,
+        timestamp: result.errorState.timestamp
+      };
+
+      displayErrorInChat(lastErrorState.message, lastErrorState.errorCode);
+      console.log('[Error] 错误状态已加载并显示');
+    } else {
+      console.log('[Error] 没有找到该故事的错误状态');
+    }
+  } catch (error) {
+    console.error('[Error] 加载错误状态失败:', error.message);
+  }
+}
+
+/**
+ * 清除错误状态（从数据库）
+ */
+async function clearErrorState() {
+  lastErrorState = null;
+
+  // 移除错误消息显示
+  const errorElement = document.getElementById('chat-error-message');
+  if (errorElement) {
+    errorElement.remove();
+  }
+
+  if (!currentStoryId) return;
+
+  try {
+    const token = localStorage.getItem('token');
+    const response = await fetch(`/api/story/${currentStoryId}/error-state`, {
+      method: 'DELETE',
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    });
+
+    const result = await response.json();
+
+    if (result.success) {
+      console.log('[Error] 错误状态已从数据库清除');
+    } else {
+      console.error('[Error] 清除错误状态失败:', result.error);
+    }
+  } catch (error) {
+    console.error('[Error] 清除错误状态失败:', error.message);
+  }
+}
+
+/**
+ * 在聊天区域显示错误
+ */
+function displayErrorInChat(errorMessage, errorCode) {
+  const container = document.getElementById('chat-messages');
+
+  if (!container) {
+    console.error('[Error] 无法找到聊天消息容器');
+    return;
+  }
+
+  // 移除现有的错误消息
+  const existingError = document.getElementById('chat-error-message');
+  if (existingError) {
+    existingError.remove();
+  }
+
+  // 创建错误消息元素
+  const errorDiv = document.createElement('div');
+  errorDiv.id = 'chat-error-message';
+  errorDiv.className = 'chat-error-message';
+
+  // 从window对象获取错误码配置（避免重复声明问题）
+  const retryableCodes = window.RETRYABLE_ERROR_CODES || ['BAD_REQUEST', 'RATE_LIMITED', 'INTERNAL_SERVER_ERROR', 'SERVICE_UNAVAILABLE', 'UNKNOWN_ERROR'];
+  const isRetryable = !errorCode || retryableCodes.includes(errorCode);
+
+  if (isRetryable) {
+    // 可重试的错误 - 显示重试按钮
+    errorDiv.innerHTML = `
+      <div class="error-content">
+        <div class="error-icon">⚠️</div>
+        <div class="error-text">
+          <strong>请求失败</strong>
+          <p>${errorMessage}</p>
+          <small>错误码: ${errorCode || 'UNKNOWN'}</small>
+        </div>
+      </div>
+      <button class="btn-retry" onclick="retryLastMessage()">🔄 重试</button>
+    `;
+  } else {
+    // 不可重试的错误 - 显示重试按钮
+    errorDiv.innerHTML = `
+      <div class="error-content">
+        <div class="error-icon">❌</div>
+        <div class="error-text">
+          <strong>发生错误</strong>
+          <p>${errorMessage}</p>
+          <small>错误码: ${errorCode || 'UNKNOWN'}</small>
+        </div>
+      </div>
+      <button class="btn-retry" onclick="retryLastMessage()">🔄 重试</button>
+    `;
+  }
+
+  container.appendChild(errorDiv);
+  scrollToBottom();
+}
+
+/**
+ * 重试上一条消息
+ */
+async function retryLastMessage() {
+  if (!lastErrorState || !lastErrorState.userInput) {
+    showNotification('没有可重试的消息', 'error');
+    return;
+  }
+
+  // 保存用户输入
+  const userInput = lastErrorState.userInput;
+
+  // 清除错误状态（在重试前）
+  await clearErrorState();
+
+  // 恢复用户输入
+  document.getElementById('chat-input').value = userInput;
+
+  // 显示重试提示
+  showNotification('正在重试...', 'info');
+
+  // 发送消息
+  await sendMessage();
 }
 
 /**
@@ -424,8 +666,16 @@ async function refreshMessages(previousCharacterCount) {
 
   if (result.success) {
     currentStoryData = result.story;
+    console.log('[Story] 刷新消息，消息数量:', result.story.messages?.length || 0);
+    console.log('[Story] 消息列表:', result.story.messages);
     renderMessages(result.story.messages || []);
     updateMessageCount(result.story.messages?.length || 0);
+
+    // 重新加载错误状态（renderMessages会清空容器）
+    // 使用setTimeout确保DOM更新完成
+    setTimeout(async () => {
+      await loadErrorStateFromStorage();
+    }, 50);
 
     // 检查是否有新角色被创建
     const newCharacterCount = result.story.characters?.length || 0;
@@ -495,6 +745,12 @@ function startMemoryCompressionPolling() {
           currentStoryData = result.story;
           renderMessages(result.story.messages || []);
           updateMessageCount(currentMessageCount);
+
+          // 重新加载错误状态（renderMessages会清空容器）
+          // 使用setTimeout确保DOM更新完成
+          setTimeout(async () => {
+            await loadErrorStateFromStorage();
+          }, 50);
 
           // 停止轮询
           clearInterval(memoryPollingInterval);

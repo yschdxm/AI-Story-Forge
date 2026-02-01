@@ -60,7 +60,7 @@ async function callAPIStream(endpoint, data, onProgress, onComplete, onError) {
                             // 收到错误，显示错误信息
                             hideLoading();
                             showNotification('生成失败: ' + parsed.error, 'error');
-                            onError(parsed.error);
+                            onError(parsed.error, parsed.errorCode, parsed.statusCode);
                             return;
                         }
 
@@ -201,36 +201,67 @@ async function sendMessageNonStream(storyId, data, onComplete, onError) {
         const decoder = new TextDecoder();
         let fullContent = '';
 
+        console.log('[API] 开始读取流数据...');
         while (true) {
             const { done, value } = await reader.read();
-            if (done) break;
-            fullContent += decoder.decode(value, { stream: true });
+            if (done) {
+                console.log('[API] 流读取完成');
+                break;
+            }
+            const chunk = decoder.decode(value, { stream: true });
+            fullContent += chunk;
+            console.log('[API] 收到chunk:', chunk);
         }
+
+        console.log('[API] 完整响应内容:', fullContent);
 
         // 解析SSE格式的响应
         const lines = fullContent.split('\n').filter(line => line.trim());
         let finalContent = '';
 
+        console.log('[API] 解析SSE响应，行数:', lines.length);
         for (const line of lines) {
+            console.log('[API] 处理行:', line);
             if (line.startsWith('data: ')) {
                 const dataStr = line.slice(6);
+                console.log('[API] 解析数据:', dataStr);
                 try {
                     const parsed = JSON.parse(dataStr);
+                    console.log('[API] 解析结果:', parsed);
                     if (parsed.error) {
-                        onError(parsed.error);
+                        // 传递错误码和状态码
+                        onError(parsed.error, parsed.errorCode, parsed.statusCode);
                         return;
+                    }
+                    if (parsed.done) {
+                        // 流式结束，使用返回的content
+                        finalContent = parsed.content || finalContent;
+                        console.log('[API] 收到done信号，finalContent:', finalContent);
+                        break;
                     }
                     if (parsed.content) {
                         finalContent += parsed.content;
                     }
                 } catch (e) {
+                    console.log('[API] 解析错误:', e.message);
                     // 忽略解析错误
                 }
             }
         }
 
+        console.log('[API] 最终内容:', finalContent);
         onComplete(finalContent);
     } catch (error) {
-        onError(error.message);
+        // 从错误消息中提取错误码（如果存在）
+        // 错误消息格式可能是: "错误消息 (错误码: XXX)"
+        let errorCode = undefined;
+        let statusCode = undefined;
+
+        // 尝试从错误对象中提取状态码
+        if (error.response) {
+            statusCode = error.response.status;
+        }
+
+        onError(error.message, errorCode, statusCode);
     }
 }

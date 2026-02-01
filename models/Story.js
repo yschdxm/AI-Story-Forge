@@ -164,6 +164,34 @@ const storySchema = new mongoose.Schema({
     lastMessageAt: Date,
     totalMessages: Number,
     openingGenerating: Boolean  // 开场是否正在生成
+  },
+
+  // 错误状态（用于持久化错误信息，支持手动重试）
+  errorState: {
+    hasError: {
+      type: Boolean,
+      default: false
+    },
+    message: {
+      type: String,
+      default: null
+    },
+    errorCode: {
+      type: String,
+      default: null
+    },
+    statusCode: {
+      type: Number,
+      default: null
+    },
+    userInput: {
+      type: String,
+      default: null
+    },
+    timestamp: {
+      type: Date,
+      default: null
+    }
   }
 }, {
   timestamps: true

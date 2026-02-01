@@ -166,6 +166,8 @@ router.post('/:id/message', authenticateToken, async (req, res) => {
         modelConfig,
         async (finalContent) => {
           fullContent = finalContent;
+          console.log('[Message] finalContent长度:', finalContent.length);
+          console.log('[Message] finalContent内容:', finalContent);
 
           // 解析AI响应（JSON格式）
           const parseResult = parseAIResponse(finalContent);
@@ -185,6 +187,17 @@ router.post('/:id/message', authenticateToken, async (req, res) => {
 
           // 达到最大重试次数仍然失败
           if (!parseResult.success && retryCount >= maxRetries) {
+            // 保存错误状态到数据库
+            story.errorState = {
+              hasError: true,
+              message: `JSON解析失败，已重试${maxRetries}次: ${parseResult.error}`,
+              errorCode: 'INTERNAL_SERVER_ERROR',
+              statusCode: null,
+              userInput: content,
+              timestamp: new Date()
+            };
+            await story.save();
+
             throw new Error(`JSON解析失败，已重试${maxRetries}次: ${parseResult.error}`);
           }
 
@@ -221,6 +234,17 @@ router.post('/:id/message', authenticateToken, async (req, res) => {
                     });
                   }
                 }
+
+                // 保存错误状态到数据库
+                story.errorState = {
+                  hasError: true,
+                  message: `NPC名称验证失败，已重试${maxRetries}次: ${nameValidation.reason}`,
+                  errorCode: 'INTERNAL_SERVER_ERROR',
+                  statusCode: null,
+                  userInput: content,
+                  timestamp: new Date()
+                };
+                await story.save();
 
                 throw new Error(`NPC名称验证失败，已重试${maxRetries}次: ${nameValidation.reason}`);
               }
@@ -262,6 +286,17 @@ router.post('/:id/message', authenticateToken, async (req, res) => {
                     });
                   }
                 }
+
+                // 保存错误状态到数据库
+                story.errorState = {
+                  hasError: true,
+                  message: `新角色信息验证失败，已重试${maxRetries}次: ${charDataValidation.reason}`,
+                  errorCode: 'INTERNAL_SERVER_ERROR',
+                  statusCode: null,
+                  userInput: content,
+                  timestamp: new Date()
+                };
+                await story.save();
 
                 throw new Error(`新角色信息验证失败，已重试${maxRetries}次: ${charDataValidation.reason}`);
               }
@@ -432,7 +467,9 @@ router.post('/:id/message', authenticateToken, async (req, res) => {
 
           // 检查是否需要记忆压缩
           await checkAndCompressMemory(story._id, modelConfig);
-        }
+        },
+        null,  // onAllComplete - 不需要
+        true   // waitForComplete: true - 等待onComplete执行完成后再发送完成信号
       );
     };
 
@@ -441,8 +478,157 @@ router.post('/:id/message', authenticateToken, async (req, res) => {
   } catch (error) {
     console.error('发送消息错误:', error);
     if (!res.headersSent) {
-      res.json({ success: false, error: error.message });
+      // 检查错误类型，传递错误码
+      const statusCode = error.response?.status;
+      const errorCode = getErrorCode(statusCode);
+
+      res.write(`data: ${JSON.stringify({
+        error: error.message,
+        errorCode: errorCode,
+        statusCode: statusCode
+      })}\n\n`);
+      res.end();
     }
+  }
+});
+
+/**
+ * 根据HTTP状态码获取错误码
+ * @param {number} statusCode - HTTP状态码
+ * @returns {string} 错误码
+ */
+function getErrorCode(statusCode) {
+  if (!statusCode) return 'UNKNOWN_ERROR';
+
+  switch (statusCode) {
+    case 400:
+      return 'BAD_REQUEST';
+    case 401:
+      return 'UNAUTHORIZED';
+    case 403:
+      return 'FORBIDDEN';
+    case 421:
+      return 'MISDIRECTED_REQUEST';
+    case 429:
+      return 'RATE_LIMITED';
+    case 500:
+      return 'INTERNAL_SERVER_ERROR';
+    case 503:
+      return 'SERVICE_UNAVAILABLE';
+    default:
+      return 'UNKNOWN_ERROR';
+  }
+}
+
+/**
+ * POST /api/story/:id/error-state
+ * 保存错误状态到数据库
+ */
+router.post('/:id/error-state', authenticateToken, async (req, res) => {
+  try {
+    const { message, errorCode, statusCode, userInput } = req.body;
+
+    // 验证必填字段
+    if (!message) {
+      return res.status(400).json({ success: false, error: '缺少错误消息' });
+    }
+
+    // 获取故事
+    const story = await Story.findOne({
+      _id: req.params.id,
+      userId: req.user._id
+    });
+
+    if (!story) {
+      return res.status(404).json({ success: false, error: '故事不存在' });
+    }
+
+    // 保存错误状态
+    story.errorState = {
+      hasError: true,
+      message,
+      errorCode: errorCode || 'UNKNOWN_ERROR',
+      statusCode: statusCode || null,
+      userInput: userInput || null,
+      timestamp: new Date()
+    };
+
+    await story.save();
+
+    res.json({
+      success: true,
+      message: '错误状态已保存'
+    });
+
+  } catch (error) {
+    console.error('保存错误状态失败:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+/**
+ * GET /api/story/:id/error-state
+ * 从数据库获取错误状态
+ */
+router.get('/:id/error-state', authenticateToken, async (req, res) => {
+  try {
+    // 获取故事
+    const story = await Story.findOne({
+      _id: req.params.id,
+      userId: req.user._id
+    });
+
+    if (!story) {
+      return res.status(404).json({ success: false, error: '故事不存在' });
+    }
+
+    res.json({
+      success: true,
+      errorState: story.errorState || null
+    });
+
+  } catch (error) {
+    console.error('获取错误状态失败:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+/**
+ * DELETE /api/story/:id/error-state
+ * 清除错误状态
+ */
+router.delete('/:id/error-state', authenticateToken, async (req, res) => {
+  try {
+    // 获取故事
+    const story = await Story.findOne({
+      _id: req.params.id,
+      userId: req.user._id
+    });
+
+    if (!story) {
+      return res.status(404).json({ success: false, error: '故事不存在' });
+    }
+
+    // 清除错误状态
+    story.errorState = {
+      hasError: false,
+      message: null,
+      errorCode: null,
+      statusCode: null,
+      userInput: null,
+      timestamp: null
+    };
+
+    await story.save();
+
+    res.json({
+      success: true,
+      message: '错误状态已清除'
+    });
+
+  } catch (error) {
+    console.error('清除错误状态失败:', error);
+    res.status(500).json({ success: false, error: error.message });
   }
 });
 
