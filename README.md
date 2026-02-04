@@ -1,4 +1,4 @@
-# AI Story Forge v4
+# AI Story Forge
 
 **AI 驱动的创意故事工坊** - 一个完整的交互式创意写作助手
 
