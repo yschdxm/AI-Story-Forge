@@ -125,11 +125,7 @@ JWT_SECRET=ai-story-forge-secret-key-change-in-production
 # MongoDB 连接
 MONGODB_URI=mongodb://localhost:27017/ai-story-forge
 
-# 默认豆包 API 配置（用于图片生成）
-DOUBAO_API_KEY=your-api-key-here
-DOUBAO_BASE_URL=https://ark.cn-beijing.volces.com/api/v3
-DOUBAO_PORTRAIT_MODEL=doubao-seedream-4-5-251128
-DOUBAO_AVATAR_MODEL=doubao-seedream-4-5-251128
+# 豆包 AI 图像生成 API 凭据请在 services\imageService.js 中配置
 ```
 
 > **注意**: `.env` 文件是必需的，否则无法正常启动服务器。
