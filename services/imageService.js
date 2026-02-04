@@ -18,7 +18,7 @@ const sharp = require('sharp');
 // 默认配置
 const DEFAULT_CONFIG = {
   baseUrl: 'https://ark.cn-beijing.volces.com/api/v3',
-  apiKey: '8111a62f-0f7c-42f2-ba06-3f52201ac62f',
+  apiKey: 'your-api-key',
   portraitModel: 'doubao-seedream-4-5-251128',
   // doubao-seededit-3.0-i2i 已下线，使用 seedream-4.5 进行图片编辑
   avatarModel: 'doubao-seedream-4-5-251128'
